@@ -1,0 +1,41 @@
+@import '~@spectrum-css/button/dist/index-vars';
+
+uimo-button {
+  @extend .spectrum-Button;
+
+  &.size-small {
+    @extend .spectrum-Button--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-Button--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-Button--sizeL;
+  }
+
+  &.variant-accent {
+    @extend .spectrum-Button--accent;
+  }
+
+  &.treatment-fill {
+    @extend .spectrum-Button--fill;
+  }
+
+  &.processing {
+    background-color: green;
+  }
+
+  &[disabled] {
+    @extend .spectrum-Button, .is-disabled;
+  }
+
+  &[disabled]:hover {
+    @extend .spectrum-Button, .spectrum-Button--sizeM, .spectrum-Button--fill, .spectrum-Button--accent, .is-disabled;
+  }
+
+  & > uimo-label {
+    @extend .spectrum-Button-label;
+  }
+}
