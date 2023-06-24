@@ -1,7 +1,7 @@
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
-import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementState, IDataAttribute, StyleProperties } from '@/types';
+import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementState, IDataAttribute, StyleProperties, ViewModule } from '@/types';
 import DataAttributeChangeEvent from '@/state/event';
 import DataAttribute from '@/state/dataAttribute';
 
@@ -50,8 +50,9 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		private _id: string;
 		private _config: ElementConfig = {};
 		private _state: ElementState;
-		private _props: CustomElementProps<D>;
+		private _props: ElementState;
 		private _context: ContextState;
+		private _viewModule: ViewModule;
 		private _elements: Record<string, BaseClass> = {};
   
 		private _observables: Array<Observation> = [];
@@ -59,35 +60,48 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		public get isCustom(): true {
 			return true;
 		}
+
+		public props: CustomElementProps<D> = {} as CustomElementProps<D>;
   
 		constructor(...args: any[]) {
 			super();
-			const [config, context] = args;
+			const [config, state, context, viewModule] = args;
 			this._id = genId();
 			this._config = config;
-			this._state = {};
-			this._props = {} as CustomElementProps<D>;
+			this._state = state || {};
+			this._props = {};
 			this._context = context || {};
+			this._viewModule = viewModule || {};
 
 			// defining object state on base of element specification 
 			Object.entries(description.props || {}).map(([propName, prop]) => {
 				if(config.props && config.props[propName]) {
-					this._state[propName] = config.props[propName];
+					this._props[propName] = config.props[propName];
 				} else {
-					this._state[propName] = new DataAttribute(prop.defaultValue);
+					this._props[propName] = new DataAttribute(prop.defaultValue);
+				}
+				Object.defineProperty(this.props, propName, {
+					get: () => this._props[propName].value,
+					set: (value: DataAttributeValue) => {
+						this._props[propName].value = value;}
+				});
+				if(this._props[propName] instanceof DataAttribute) {
+					this.observe(this._props[propName], () => {
+						this.dispatchEvent(new DataAttributeChangeEvent(this._props[propName], propName));
+					});
 				}
 			});
   
-			for(const [attrName, attr] of Object.entries(this._state)) {
-				Object.defineProperty(this._props, attrName, {
-					get: () => attr.value,
-					set: (value: DataAttributeValue) => {
-						attr.value = value;}
-				});
-				this.observe(attr, () => {
-					this.dispatchEvent(new DataAttributeChangeEvent(attr, attrName));
-				});
-			}
+			// for(const [attrName, attr] of Object.entries(this._state)) {
+			// 	Object.defineProperty(this._props, attrName, {
+			// 		get: () => attr.value,
+			// 		set: (value: DataAttributeValue) => {
+			// 			attr.value = value;}
+			// 	});
+			// 	this.observe(attr, () => {
+			// 		this.dispatchEvent(new DataAttributeChangeEvent(attr, attrName));
+			// 	});
+			// }
   
 			this._build();
 		}
@@ -117,12 +131,12 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			this.setAttribute('id', this._id);
 			template.alias && this.setAttribute('alias', template.alias as string); 
   
-			template.className && setObservation(this, template.className, this._state, (value: DataAttributeValue) => {
+			template.className && setObservation(this, template.className, this._state, this._context, (value: DataAttributeValue) => {
 				this.setAttribute('class', `${value}`.trim()); 
 			});
   
 			Object.entries(template.attributes || {}).map(([name, prop]) => {
-				setObservation(this, prop!, this._state, (value: DataAttributeValue) => {
+				setObservation(this, prop!, this._props,  this._context, (value: DataAttributeValue) => {
 					if(value === true) {
 						this.setAttribute(name, ''); 
 					} else if(value === false) {
@@ -139,7 +153,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 					//@ts-ignore
 					this[name] = value; 
 				};
-				setObservation(this, prop!, this._state, setter);
+				setObservation(this, prop!, this._props, this._context, setter);
 				// TODO: add setter when element default stucture will be implemented, so if property
 				// will be defined in element stucture we will be able to redefine behavior
 				// Object.defineProperty(this as CustomElement, name, {
@@ -150,7 +164,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
   
 			for(const styleName in template.style) {
 				const prop = template.style[styleName as StyleProperties];
-				setObservation(this, prop!, this._state, (value: DataAttributeValue) => {
+				setObservation(this, prop!, this._props, this._context, (value: DataAttributeValue) => {
 					this.style[styleName as StyleProperties] = value as any;
 				});
 			}
@@ -158,7 +172,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			Object.entries(template.events || {}).map(([name, event]) => {
 				this.addEventListener(name, (e: Event) => {
 					if(typeof event === 'string') {
-						const handler = this[event as keyof Base] as ElementEventHandler;
+						const handler = this._viewModule[event as keyof Base] as ElementEventHandler;
 						if(handler) {
 							handler.call(this, e);
 						} else {
@@ -177,7 +191,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 					this.innerHTML = template.children;
 				} else {
 					for(const childConfig of template.children) {
-						const child = buildElement(this, childConfig, this._state);
+						const child = buildElement(this, childConfig, this._state, this._context, this._viewModule);
 						this.appendChild(child);
 						if(childConfig.alias) {
 							this._elements[childConfig.alias] = child as BaseClass;
@@ -210,15 +224,15 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		} 
   
 		public get state(): ElementState {
-			return this._state;
-		} 
-  
-		public get props(): CustomElementProps<D> {
 			return this._props;
-		} 
+		}  
   
 		public get elements(): Record<string, BaseClass> {
 			return this._elements;
+		} 
+  
+		public get context(): ContextState {
+			return this._context;
 		} 
 	}
 

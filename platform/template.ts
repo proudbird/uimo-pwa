@@ -11,10 +11,11 @@ const template = (context: ContextState): ChildElemetConfig => {
 		children: [
 			{
 				tagName: 'uimo-button',
-				alias: 'button',
+				alias: 'Button',
 				events: {
 					click: function (this: any) {
 						this.props.size = 'large';
+						this.props.label = 'Clicked!';
 					} 
 				}, 
 				props: {

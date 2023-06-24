@@ -53,7 +53,12 @@ export type ElementPropertyHandler = {
   dependencies?: Array<IDataAttribute>;
 };
 
-export type ElementProp = string | IDataAttribute | ElementPropertyHandler;
+export type ElementPropertyDataSource = {
+  dataPath: string;
+  source: string;
+};
+
+export type ElementProp = string | number | boolean | IDataAttribute | ElementPropertyHandler | ElementPropertyDataSource;
 
 export type ElementProps = {
   [prop: string]: ElementProp;
@@ -74,9 +79,13 @@ export type ElementConfig = {
   children?: string | Array<ChildElemetConfig>;
 };
 
+export type ViewTemplate = ElementConfig & ChildElemetConfig;
+
 export type ElementState = {
   [attribute: string]: IDataAttribute;
 };
+
+export type ViewModule = Record<string, Function>;
 
 export type ContextState = ElementState;
 

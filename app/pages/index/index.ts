@@ -1,3 +1,3 @@
 export function onStartButtonClick(this: any) {
-this.greeting = 'Hello World!';
+  this.context.greeting.value = 'Hello World!';
 }
