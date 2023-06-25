@@ -1,0 +1,5 @@
+@import '~@spectrum-css/typography/dist/index-vars';
+
+uimo-text {
+  @extend .spectrum-Body;
+}

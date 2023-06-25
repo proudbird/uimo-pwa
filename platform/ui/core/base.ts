@@ -4,12 +4,12 @@ import { genId } from '@/utils/helpers';
 import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementState, IDataAttribute, StyleProperties, ViewModule } from '@/types';
 import DataAttributeChangeEvent from '@/state/event';
 import DataAttribute from '@/state/dataAttribute';
+import View from './view';
 
 type Observation = {
   observable: IDataAttribute,
   callback: EventListenerOrEventListenerObject
 }
-
 
 interface Construtable<T> {
   new (...args: any[]): T;
@@ -17,7 +17,7 @@ interface Construtable<T> {
 }
 
 interface ConstrutableB<T> {
-  new (config: ElementConfig, stateDefinition?: ElementState, context?: ContextState): T;
+  new (owner: View, config: ElementConfig, context?: ContextState, module?: ViewModule): T;
   prototype: T;
 }
 
@@ -26,6 +26,8 @@ export interface BaseClass extends HTMLElement {
   get config(): ElementConfig;
   get state(): ElementState;
   get props(): CustomElementProps<any>;
+  get context(): ContextState;
+  get data(): Record<string, IDataAttribute>;
   get elements(): Record<string, BaseClass>;
   observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void;
 }
@@ -34,28 +36,30 @@ export interface BaseClass extends HTMLElement {
 // decorator to register class as custom element
 export function DefineElement(tagName: string) {
 	return function <T extends Construtable<BaseClass>>(constructor: T) {
-		customElements.define(`uimo-${tagName}`, constructor as unknown as typeof HTMLElement);
-		return class extends constructor {
+		class Extended extends constructor {
 			_tagName: string;
 			constructor(...args: any[]) {
 				super(...args);
 				this._tagName = tagName;
 			}
 		};
+		customElements.define(`uimo-${tagName}`, Extended as unknown as typeof HTMLElement);
+		return Extended;
 	};
 }
 
 function customElementFabric<D extends ElementDefinition>(description: D): ReturnClassType<D> {
 	class Base extends HTMLElement implements BaseClass {
-		private _id: string;
-		private _config: ElementConfig = {};
-		private _state: ElementState;
-		private _props: ElementState;
-		private _context: ContextState;
-		private _viewModule: ViewModule;
-		private _elements: Record<string, BaseClass> = {};
+		#id: string;
+		#config: ElementConfig = {};
+		#state: ElementState;
+		#props: ElementState;
+		#context: ContextState;
+		#viewModule: ViewModule;
+		#elements: Record<string, BaseClass> = {};
+		#owner: Base;
   
-		private _observables: Array<Observation> = [];
+		#observables: Array<Observation> = [];
   
 		public get isCustom(): true {
 			return true;
@@ -65,35 +69,40 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
   
 		constructor(...args: any[]) {
 			super();
-			const [config, state, context, viewModule] = args;
-			this._id = genId();
-			this._config = config;
-			this._state = state || {};
-			this._props = {};
-			this._context = context || {};
-			this._viewModule = viewModule || {};
+			const [owner, config, context, viewModule] = args;
+			this.#id = genId();
+			this.#config = config;
+			this.#state = {};
+			this.#props = {};
+			this.#context = context || {};
+			this.#viewModule = viewModule || {};
+			this.#owner = owner;
+
+			if(!owner && this.constructor.name === 'View') {
+				this.#owner = this;
+			}
 
 			// defining object state on base of element specification 
 			Object.entries(description.props || {}).map(([propName, prop]) => {
 				if(config.props && config.props[propName]) {
-					this._props[propName] = config.props[propName];
+					this.#props[propName] = config.props[propName];
 				} else {
-					this._props[propName] = new DataAttribute(prop.defaultValue);
+					this.#props[propName] = new DataAttribute(prop.defaultValue);
 				}
 				Object.defineProperty(this.props, propName, {
-					get: () => this._props[propName].value,
+					get: () => this.#props[propName].value,
 					set: (value: DataAttributeValue) => {
-						this._props[propName].value = value;}
+						this.#props[propName].value = value;}
 				});
-				if(this._props[propName] instanceof DataAttribute) {
-					this.observe(this._props[propName], () => {
-						this.dispatchEvent(new DataAttributeChangeEvent(this._props[propName], propName));
+				if(this.#props[propName] instanceof DataAttribute) {
+					this.observe(this.#props[propName], () => {
+						this.dispatchEvent(new DataAttributeChangeEvent(this.#props[propName], propName));
 					});
 				}
 			});
   
-			// for(const [attrName, attr] of Object.entries(this._state)) {
-			// 	Object.defineProperty(this._props, attrName, {
+			// for(const [attrName, attr] of Object.entries(this.#state)) {
+			// 	Object.defineProperty(this.#props, attrName, {
 			// 		get: () => attr.value,
 			// 		set: (value: DataAttributeValue) => {
 			// 			attr.value = value;}
@@ -103,19 +112,19 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			// 	});
 			// }
   
-			this._build();
+			this.#build();
 		}
   
 		private disconnectedCallback(): void {
-			for(const { observable, callback } of this._observables) {
+			for(const { observable, callback } of this.#observables) {
 				observable.removeEventListener('change', callback);
 			}
-			this._observables = [];
+			this.#observables = [];
 		}
   
 		public observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void {
 			observable.addEventListener('change', callback);
-			this._observables.push({
+			this.#observables.push({
 				observable,
 				callback 
 			});
@@ -125,18 +134,18 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			return this.config;
 		}
   
-		protected _build(): void {
+		#build(): void {
 			const template = this.render();
       
-			this.setAttribute('id', this._id);
+			this.setAttribute('id', this.#id);
 			template.alias && this.setAttribute('alias', template.alias as string); 
   
-			template.className && setObservation(this, template.className, this._state, this._context, (value: DataAttributeValue) => {
+			template.className && setObservation(this, template.className, this.#context, (value: DataAttributeValue) => {
 				this.setAttribute('class', `${value}`.trim()); 
 			});
   
 			Object.entries(template.attributes || {}).map(([name, prop]) => {
-				setObservation(this, prop!, this._props,  this._context, (value: DataAttributeValue) => {
+				setObservation(this, prop!, this.#context, (value: DataAttributeValue) => {
 					if(value === true) {
 						this.setAttribute(name, ''); 
 					} else if(value === false) {
@@ -149,22 +158,15 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
   
 			Object.entries(template.props || {}).map(([name, prop]) => {
 				const setter = (value: DataAttributeValue) => {
-					console.log(value);
 					//@ts-ignore
 					this[name] = value; 
 				};
-				setObservation(this, prop!, this._props, this._context, setter);
-				// TODO: add setter when element default stucture will be implemented, so if property
-				// will be defined in element stucture we will be able to redefine behavior
-				// Object.defineProperty(this as CustomElement, name, {
-				//   get: () => getPropValue(prop, this._state),
-				//   // set: (newProp) => setObservation(this as CustomElement, newProp, this._state, setter)
-				// });
+				setObservation(this, prop!, this.#context, setter);
 			});
   
 			for(const styleName in template.style) {
 				const prop = template.style[styleName as StyleProperties];
-				setObservation(this, prop!, this._props, this._context, (value: DataAttributeValue) => {
+				setObservation(this, prop!, this.#context, (value: DataAttributeValue) => {
 					this.style[styleName as StyleProperties] = value as any;
 				});
 			}
@@ -172,9 +174,9 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			Object.entries(template.events || {}).map(([name, event]) => {
 				this.addEventListener(name, (e: Event) => {
 					if(typeof event === 'string') {
-						const handler = this._viewModule[event as keyof Base] as ElementEventHandler;
+						const handler = this.#viewModule[event as keyof Base] as ElementEventHandler;
 						if(handler) {
-							handler.call(this, e);
+							handler.call(this.#owner, e);
 						} else {
 							throw new Error(`Element doesn't have a function ${event}`);
 						}
@@ -191,10 +193,10 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 					this.innerHTML = template.children;
 				} else {
 					for(const childConfig of template.children) {
-						const child = buildElement(this, childConfig, this._state, this._context, this._viewModule);
+						const child = buildElement(this.#owner, childConfig, this.#context, this.#viewModule);
 						this.appendChild(child);
 						if(childConfig.alias) {
-							this._elements[childConfig.alias] = child as BaseClass;
+							this.#elements[childConfig.alias] = child as BaseClass;
 						}
 					}
 				}
@@ -202,7 +204,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		}
   
 		public handleEvent(eventName: string, e: Event): void {
-			const eventDefinition = this._config.events?.[eventName];
+			const eventDefinition = this.#config.events?.[eventName];
 			if(!eventDefinition) return;
   
 			if(typeof eventDefinition === 'string') {
@@ -220,20 +222,24 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		}
   
 		public get config(): ElementConfig {
-			return this._config;
+			return this.#config;
 		} 
   
 		public get state(): ElementState {
-			return this._props;
+			return this.#props;
 		}  
   
 		public get elements(): Record<string, BaseClass> {
-			return this._elements;
+			return this.#elements;
 		} 
   
 		public get context(): ContextState {
-			return this._context;
+			return this.#context;
 		} 
+
+		public get data() {
+			return {};
+		}
 	}
 
 	return Base as ReturnClassType<D>;

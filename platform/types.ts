@@ -93,6 +93,8 @@ export type Context<S extends ElementState> = {
   state?: S;
 }
 
+export type StateDefinition = Record<string, string>;
+
 export type ElementPresets = {
   tagName: string;
   className: string

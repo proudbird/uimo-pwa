@@ -1,3 +1,4 @@
-export function onStartButtonClick(this: any) {
-  this.context.greeting.value = 'Hello World!';
+export function onLoginButtonClick(this: IndexView) {
+
+  this.message = 'User login is not provided!';
 }

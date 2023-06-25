@@ -7,3 +7,15 @@
 @import '~@spectrum-css/vars/dist/spectrum-global.css';
 @import '~@spectrum-css/vars/dist/spectrum-medium.css';
 @import '~@spectrum-css/vars/dist/spectrum-light.css';
+
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+}
