@@ -1,7 +1,7 @@
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
-import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementState, IDataAttribute, StyleProperties, ViewModule } from '@/types';
+import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementPropertyDataSource, ElementState, IDataAttribute, StyleProperties, ViewModule } from '@/types';
 import DataAttributeChangeEvent from '@/state/event';
 import DataAttribute from '@/state/dataAttribute';
 import View from './view';
@@ -27,8 +27,8 @@ export interface BaseClass extends HTMLElement {
   get state(): ElementState;
   get props(): CustomElementProps<any>;
   get context(): ContextState;
-  get data(): Record<string, IDataAttribute>;
   get elements(): Record<string, BaseClass>;
+  get owner(): View;
   observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void;
 }
 
@@ -57,7 +57,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		#context: ContextState;
 		#viewModule: ViewModule;
 		#elements: Record<string, BaseClass> = {};
-		#owner: Base;
+		#owner: View;
   
 		#observables: Array<Observation> = [];
   
@@ -78,14 +78,14 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			this.#viewModule = viewModule || {};
 			this.#owner = owner;
 
-			if(!owner && this.constructor.name === 'View') {
-				this.#owner = this;
-			}
-
 			// defining object state on base of element specification 
 			Object.entries(description.props || {}).map(([propName, prop]) => {
 				if(config.props && config.props[propName]) {
-					this.#props[propName] = config.props[propName];
+					if(typeof config.props[propName] === 'object' && (config.props[propName] as ElementPropertyDataSource).dataPath) {
+						this.#props[propName] = context[config.props[propName].dataPath];
+					} else {
+						this.#props[propName] = config.props[propName];
+					}
 				} else {
 					this.#props[propName] = new DataAttribute(prop.defaultValue);
 				}
@@ -193,7 +193,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 					this.innerHTML = template.children;
 				} else {
 					for(const childConfig of template.children) {
-						const child = buildElement(this.#owner, childConfig, this.#context, this.#viewModule);
+						const child = buildElement(this, childConfig, this.#context, this.#viewModule);
 						this.appendChild(child);
 						if(childConfig.alias) {
 							this.#elements[childConfig.alias] = child as BaseClass;
@@ -237,8 +237,8 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			return this.#context;
 		} 
 
-		public get data() {
-			return {};
+		public get owner() {
+			return this.#owner;
 		}
 	}
 

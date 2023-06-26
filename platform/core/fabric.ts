@@ -1,7 +1,7 @@
 import { BaseClass } from '../ui/core/base';
 import { DataAttribute } from '../state';
 import { ChildElemetConfig, ContextState, DataAttributeEventHandler, DataAttributeValue, ElementEventHandler, ElementProp, ElementPropertyDataSource, ElementPropertyHandler, IDataAttribute, StyleProperties, ViewModule } from '../types';
-import { View } from '@/ui/components';
+import View from '@/ui/core/view';
 
 export function setObservation(element: BaseClass, prop: ElementProp, context: ContextState, setter: DataAttributeEventHandler): void {
 	if(!(prop || context)) return;
@@ -40,11 +40,11 @@ export function getPropValue(prop: ElementProp, state: ContextState): DataAttrib
 	}
 }
 
-export function createElement(owner: View, config: ChildElemetConfig, context: ContextState, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
+export function createElement(parent: BaseClass, config: ChildElemetConfig, context: ContextState, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
 	// first trying to create custom element
 	const Constructor = customElements.get(config.tagName.replace('@', 'uimo-'));
 	if(Constructor) {
-		return new Constructor(owner, config, context, viewModule) as BaseClass;
+		return new Constructor(parent.owner, config, context, viewModule) as BaseClass;
 	}
 
 	// creating build-in element 
@@ -55,9 +55,9 @@ export function createElement(owner: View, config: ChildElemetConfig, context: C
 	}
 }
 
-export function buildElement(owner: View, config: ChildElemetConfig, context: ContextState, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
+export function buildElement(parent: BaseClass, config: ChildElemetConfig, context: ContextState, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
   
-	const element = createElement(owner, config, context, viewModule);
+	const element = createElement(parent, config, context, viewModule);
 	if((element as BaseClass).isCustom) {
 		return element;
 	}
@@ -70,7 +70,7 @@ export function buildElement(owner: View, config: ChildElemetConfig, context: Co
 		if((element as BaseClass).isCustom) {
 			setObservation(element as BaseClass, prop, context, setter);
 		} else {
-			setObservation(owner, prop, context, setter);
+			setObservation(parent, prop, context, setter);
 		}
 	}
 
@@ -81,7 +81,7 @@ export function buildElement(owner: View, config: ChildElemetConfig, context: Co
 		if((element as BaseClass).isCustom) {
 			setObservation(element as BaseClass, prop!, context, setter);
 		} else {
-			setObservation(owner, prop!, context, setter);
+			setObservation(parent, prop!, context, setter);
 		}
 	});
 
@@ -97,7 +97,7 @@ export function buildElement(owner: View, config: ChildElemetConfig, context: Co
 			//   set: (newProp) => setObservation(element as CustomElement, newProp, state, () => {})
 			// });
 		} else {
-			setObservation(owner, prop!, context, setter);
+			setObservation(parent, prop!, context, setter);
 		}
 	});
 
@@ -107,7 +107,7 @@ export function buildElement(owner: View, config: ChildElemetConfig, context: Co
 		if((element as BaseClass).isCustom) {
 			setObservation(element as BaseClass, prop!, context, setter);
 		} else {
-			setObservation(owner, prop!, context, setter);
+			setObservation(parent, prop!, context, setter);
 		}
 	}
 
@@ -116,12 +116,12 @@ export function buildElement(owner: View, config: ChildElemetConfig, context: Co
 			if(typeof event === 'string') {
 				const handler = viewModule[event as keyof BaseClass] as ElementEventHandler;
 				if(handler) {
-					handler.call(owner, e);
+					handler.call(parent.owner, e);
 				} else {
 					throw new Error(`Element doesn't have a function ${event}`);
 				}
 			} else if(typeof event === 'function') {
-				event.call(owner, e);
+				event.call(parent.owner, e);
 			} else {
 				throw new Error(`Wrong object was defined as event handler. Only 'string' or 'function' are allowed. Type '${typeof event}' was provided.`);
 			}
@@ -133,7 +133,7 @@ export function buildElement(owner: View, config: ChildElemetConfig, context: Co
 			element.innerHTML = config.children;
 		} else {
 			for(const childConfig of config.children) {
-				const child = buildElement(owner, childConfig, context, viewModule);
+				const child = buildElement(parent, childConfig, context, viewModule);
 				element.appendChild(child);
 			}
 		}
