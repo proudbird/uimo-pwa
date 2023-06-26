@@ -90,7 +90,13 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 					this.#props[propName] = new DataAttribute(prop.defaultValue);
 				}
 				Object.defineProperty(this.props, propName, {
-					get: () => this.#props[propName].value,
+					get: () => {
+						if(this.#props[propName] instanceof DataAttribute) {
+							return this.#props[propName].value;
+						} else {
+							return this.#props[propName];
+						}
+					},
 					set: (value: DataAttributeValue) => {
 						this.#props[propName].value = value;}
 				});
@@ -160,6 +166,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 				const setter = (value: DataAttributeValue) => {
 					//@ts-ignore
 					this[name] = value; 
+					console.log(name)
 				};
 				setObservation(this, prop!, this.#context, setter);
 			});
@@ -224,6 +231,10 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		public get config(): ElementConfig {
 			return this.#config;
 		} 
+  
+		// public get props(): CustomElementProps<any> {
+		// 	return this.#props;
+		// }  
   
 		public get state(): ElementState {
 			return this.#props;
