@@ -9,17 +9,22 @@ export default {
     tagName: '@box',
     alias: 'container',
     style: {
-      width: '400px',
+      width: '300px',
       border: '1px solid #ccc',
       borderRadius: '4px',
+      padding: '20px',
     },
     children: [{
       tagName: '@box',
       alias: 'fields',
       style: { alignItems: 'center'},
-      children: [
-        // here Username and Password fields should be rendered
-      ]}, {
+      children: [{
+        tagName: '@textfield',
+        alias: 'username',
+        props: { 
+          label: 'Username',
+          value: { dataPath: 'username' } },
+      }]}, {
 
       tagName: '@box',
       alias: 'toolbar',
@@ -31,6 +36,11 @@ export default {
         style: { width: '120px' },
         events: { click: 'onLoginButtonClick' }
       }]}, {
+
+      tagName: '@text',
+      alias: 'info',
+      props: { value: { dataPath: 'username' } }
+      }, {
 
       tagName: '@text',
       alias: 'message',

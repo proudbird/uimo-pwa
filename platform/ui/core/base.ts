@@ -166,7 +166,6 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 				const setter = (value: DataAttributeValue) => {
 					//@ts-ignore
 					this[name] = value; 
-					console.log(name)
 				};
 				setObservation(this, prop!, this.#context, setter);
 			});

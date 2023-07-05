@@ -1,0 +1,17 @@
+@import '~@spectrum-css/textfield/dist/index-vars';
+
+uimo-textinput > input {
+  @extend .spectrum-Textfield-input;
+
+  &.size-small {
+    @extend .spectrum-Textfield--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-Textfield--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-Textfield--sizeL;
+  }
+}
