@@ -2,6 +2,7 @@ import './ui/components';
 import './style.scss';
 
 import View from './ui/core/view';
+import loadModule from './core/loadModule';
 
 export async function loadApp(root: HTMLElement): Promise<void> {
 	const app = await defineApp();
@@ -12,11 +13,21 @@ export async function loadApp(root: HTMLElement): Promise<void> {
 
 export async function defineApp(): Promise<HTMLElement | undefined> {
 
-	const viewConfig = (await import('app/pages/index/index.conf')).default;
-	const viewModule = (await import('app/pages/index/index'));
-	const viewState = (await import('app/pages/index/index.state')).default;
+	await loadModule(`/app/index/view/Admin.Views.Index`);
 
-	const view = new View(viewConfig, viewState, viewModule);
+	const viewDefinition = window.views['Admin.Views.Index'];
+
+	if(viewDefinition.error) {
+		const errorContainer = document.createElement('div');
+		errorContainer.innerHTML = `
+			<h1>Error</h1>
+			<p>${viewDefinition.error}</p>
+		`;
+		return errorContainer;
+	}
+
+	const { layout, data, module } = viewDefinition;
+	const view = new View(layout, data, module);
 
 	return view.node;
 }

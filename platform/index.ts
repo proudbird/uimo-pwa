@@ -1,5 +1,7 @@
 import { loadApp } from './core';
 
+window.views = {};
+
 const ROOT_NAME = 'app';
 
 const root = document.getElementById(ROOT_NAME);

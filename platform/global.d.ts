@@ -1,0 +1,1 @@
+var views: Record<string, any>;
