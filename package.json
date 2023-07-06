@@ -27,8 +27,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "watch": "tsc && vite build --watch",
     "preview": "vite preview",
     "build:controller": "tsc -p ./controller/tsconfig.json",
-    "watch:controller": "tsc -p ./controller/tsconfig.json --watch"
+    "watch:controller": "tsc -p ./controller/tsconfig.json --watch",
+    "lint": "eslint . --fix"
   }
 }

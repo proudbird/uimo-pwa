@@ -4,6 +4,7 @@ import path from 'path';
 export default defineConfig({
 	build: {
 		outDir: './public',
+		sourcemap: 'inline',
 	},
 	resolve: {
 		alias:[
@@ -22,18 +23,18 @@ export default defineConfig({
 		]
 	},
 	server: {
-    proxy: {
-      '/': {
-        target: 'http://127.0.0.1:21021/',
-        changeOrigin: true,
+		proxy: {
+			'/': {
+				target: 'http://127.0.0.1:21021/',
+				changeOrigin: true,
 				bypass: function(req) {
 					if (/\/(app)(.*)\/(view)\//.test(req.url || '')) {
 						console.log(req.url);
-            return null;
-          }
-          return req.url;
-        },
-      },
-    },
-  },
+						return null;
+					}
+					return req.url;
+				},
+			},
+		},
+	},
 });
