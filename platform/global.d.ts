@@ -1,1 +1,2 @@
-var views: Record<string, any>;
+let views: Record<string, any>;
+const defineGlobals = (globals: any) => any;
