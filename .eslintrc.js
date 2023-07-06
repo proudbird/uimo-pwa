@@ -28,7 +28,7 @@ module.exports = {
 	'plugins': [
 		'@typescript-eslint'
 	],
-	'ignorePatterns': ['experements.ts'],
+	'ignorePatterns': ['public', 'controller/build', 'experements.ts'],
 	'rules': {
 		'indent': [
 			'error',

@@ -1,4 +1,4 @@
 export default {
-  message: 'string',
-  username: 'string',
+	message: 'string',
+	username: 'string',
 };

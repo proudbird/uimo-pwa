@@ -13,7 +13,7 @@ export async function loadApp(root: HTMLElement): Promise<void> {
 
 export async function defineApp(): Promise<HTMLElement | undefined> {
 
-	await loadModule(`/app/index/view/Admin.Views.Index`);
+	await loadModule('/app/index/view/Admin.Views.Index');
 
 	const viewDefinition = window.views['Admin.Views.Index'];
 

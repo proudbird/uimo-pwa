@@ -42,7 +42,7 @@ export function DefineElement(tagName: string) {
 				super(...args);
 				this._tagName = tagName;
 			}
-		};
+		}
 		customElements.define(`uimo-${tagName}`, Extended as unknown as typeof HTMLElement);
 		return Extended;
 	};

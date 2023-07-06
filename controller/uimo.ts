@@ -9,43 +9,43 @@ interface UimoProps {
 let instance: Uimo;
 
 class Uimo {
-  #pathToCubes: string;
+	#pathToCubes: string;
 
-  constructor({ pathToCubes }: UimoProps) {
-    if(instance) return instance;
-    instance = this;
+	constructor({ pathToCubes }: UimoProps) {
+		if(instance) return instance;
+		instance = this;
     
-    this.#pathToCubes = pathToCubes;
-  }
+		this.#pathToCubes = pathToCubes;
+	}
 
-  paths = {
-    public: '../../public/',
-    plarform: '../../platform/',
-  }
+	paths = {
+		public: '../../public/',
+		plarform: '../../platform/',
+	};
 
-  index(): string {
-    const filePath = join(__dirname, this.paths.public, 'index.html');
-    if(existsSync(filePath)) {
-      return readFileSync(filePath, 'utf-8');
-    } else {
-      const message = `Can't find index.html file`;
-      console.log(message);
-      return message;
-    }
-  }
+	index(): string {
+		const filePath = join(__dirname, this.paths.public, 'index.html');
+		if(existsSync(filePath)) {
+			return readFileSync(filePath, 'utf-8');
+		} else {
+			const message = 'Can\'t find index.html file';
+			console.log(message);
+			return message;
+		}
+	}
 
-  static(): string {
-    return join(__dirname, this.paths.public);
-  }
+	static(): string {
+		return join(__dirname, this.paths.public);
+	}
 
-  /**
+	/**
  * Load a view module based on the provided path and viewId.
  *
  * @param pathToCubes The base path to the view modules.
  * @param viewId The ID of the view module to load.
  * @returns A promise that resolves to the view module code or map.
  */
-  loadView = loadView;
+	loadView = loadView;
 }
 
 export default Uimo;
