@@ -1,2 +1,2 @@
-let views: Record<string, any>;
-const defineGlobals = (globals: any) => any;
+declare var views: Record<string, any>;
+declare var defineGlobals: any;

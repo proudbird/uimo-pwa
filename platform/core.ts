@@ -29,5 +29,5 @@ export async function defineApp(): Promise<HTMLElement | undefined> {
 	const { layout, data, module } = viewDefinition;
 	const view = new View(layout, data, module);
 
-	return view.node;
+	return view.element;
 }

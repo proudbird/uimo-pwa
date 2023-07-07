@@ -1,9 +1,8 @@
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
-import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementPropertyDataSource, ElementState, IDataAttribute, StyleProperties, ViewModule } from '@/types';
+import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementPropertyDataSource, ElementState, StyleProperties, ViewModule } from '@/types';
 import DataAttributeChangeEvent from '@/state/event';
-import DataAttribute from '@/state/dataAttribute';
 import View from './view';
 
 type Observation = {
@@ -53,8 +52,8 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 		#id: string;
 		#config: ElementConfig = {};
 		#state: ElementState;
-		#props: ElementState;
-		#context: ContextState;
+		#props: IDataContext;
+		#context: IDataContext;
 		#viewModule: ViewModule;
 		#elements: Record<string, BaseClass> = {};
 		#owner: View;
@@ -82,41 +81,49 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			Object.entries(description.props || {}).map(([propName, prop]) => {
 				if(config.props && config.props[propName]) {
 					if(typeof config.props[propName] === 'object' && (config.props[propName] as ElementPropertyDataSource).dataPath) {
-						this.#props[propName] = context[config.props[propName].dataPath];
+						Object.defineProperty(this.#props, propName, { 
+							value: context[config.props[propName].dataPath],
+							writable: false 
+						});
 					} else {
-						this.#props[propName] = config.props[propName];
+						Object.defineProperty(this.#props, propName, { 
+							value: config.props[propName],
+							writable: false 
+						});
 					}
 				} else {
-					this.#props[propName] = new DataAttribute(prop.defaultValue);
+					Object.defineProperty(this.#props, propName, { 
+						value: prop.defaultValue,
+						writable: false 
+					});
 				}
+
 				Object.defineProperty(this.props, propName, {
 					get: () => {
-						if(this.#props[propName] instanceof DataAttribute) {
-							return this.#props[propName].value;
+						if(this.#props[propName]?.DataAttribute) {
+							return (this.#props[propName]).value;
 						} else {
 							return this.#props[propName];
 						}
 					},
-					set: (value: DataAttributeValue) => {
-						this.#props[propName].value = value;}
+					set: (value: any) => {
+						if(this.#props[propName]?.DataAttribute) {
+							(this.#props[propName]).value = value;
+						} else {
+							Object.defineProperty(this.#props, propName, { 
+								value,
+								writable: false 
+							});
+						}
+					}
 				});
-				if(this.#props[propName] instanceof DataAttribute) {
-					this.observe(this.#props[propName], () => {
-						this.dispatchEvent(new DataAttributeChangeEvent(this.#props[propName], propName));
+				
+				if(this.#props[propName]?.DataAttribute) {
+					this.observe((this.#props[propName]), () => {
+						this.dispatchEvent(new DataAttributeChangeEvent((this.#props[propName]), propName));
 					});
 				}
 			});
-  
-			// for(const [attrName, attr] of Object.entries(this.#state)) {
-			// 	Object.defineProperty(this.#props, attrName, {
-			// 		get: () => attr.value,
-			// 		set: (value: DataAttributeValue) => {
-			// 			attr.value = value;}
-			// 	});
-			// 	this.observe(attr, () => {
-			// 		this.dispatchEvent(new DataAttributeChangeEvent(attr, attrName));
-			// 	});
-			// }
   
 			this.#build();
 		}

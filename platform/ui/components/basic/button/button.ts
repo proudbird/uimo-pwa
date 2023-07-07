@@ -16,12 +16,12 @@ export default class Button extends customElement(description) {
 			},
 			attributes: {
 				role: 'button',
-				disabled: this.state.disabled
+				disabled: !!this.config.props?.disabled
 			}, 
 			children: [{
 				tagName: 'uimo-label',
 				props: {
-					value: this.state.label || tagName
+					value: this.config.props?.label || tagName
 				},
 			}]
 		};

@@ -1,31 +1,27 @@
-import { ContextState, DataAttributeValue, ElementConfig, StateDefinition, ViewModule } from '@/types';
-import { DataAttribute } from '@/state';
+import { ElementConfig, ViewModule } from '@/types';
 import ViewElement from '@/ui/components/basic/view';
-
-const typesDefaultValuesMap = {
-	'string': ''
-} as const;
+import Context from '@/core/data/context';
 
 export default class View {
-	#state: ContextState = {};
-	#module: ViewModule = {};
-	#node: HTMLElement;
+	#context: IDataContext;
+	#module: ViewModule;
+	#element: HTMLElement;
 
-	constructor(config: ElementConfig, stateDefinition: StateDefinition, module: ViewModule) {
+	constructor(config: ElementConfig, contextDefinition: DataDefinition, module: ViewModule) {
 		this.#module = module;
+		this.#context = new Context(contextDefinition);
+		this.#element = new ViewElement(this, config, this.#context, this.#module);
 
-		Object.entries(stateDefinition || {}).map(([name, value]) => {
-			this.#state[name] = new DataAttribute(typesDefaultValuesMap[value as keyof typeof typesDefaultValuesMap]);
-			Object.defineProperty(this, name, {
-				get: () => this.#state[name].value,
-				set: (value: DataAttributeValue) => this.#state[name].value = value,
+		for(const attrName of Object.getOwnPropertyNames(this.#context)) {
+			Object.defineProperty(this, attrName, {
+				get: () => this.#context[attrName].value,
+				set: (value: any) => {
+					this.#context[attrName].value = value},
 			});
-		});
-
-		this.#node = new ViewElement(this, config, this.#state, this.#module);
+		}
 	}
 
-	get node(): HTMLElement {
-		return this.#node;
+	get element(): HTMLElement {
+		return this.#element;
 	}
 }

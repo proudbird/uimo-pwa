@@ -16,8 +16,8 @@ export default class FieldLabel extends customElement(description) {
 			children: [{
 				tagName: 'label',
 				props: {	
-					htmlFor: this.state.for,
-					innerHTML: this.state.value || tagName
+					htmlFor: this.config.props?.for || '',
+					innerHTML: this.config.props?.value || tagName
 				},
 			}]
 		};

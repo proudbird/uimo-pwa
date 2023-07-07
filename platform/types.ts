@@ -1,3 +1,6 @@
+
+
+
 export type DataAttributeValue = boolean | string | number | Date | undefined;
 
 export type EventHandler<T extends DataAttributeValue> = (value: T) => void;
@@ -55,7 +58,7 @@ export type ElementPropertyHandler = {
 
 export type ElementPropertyDataSource = {
   dataPath: string;
-  source: string;
+  source?: string;
 };
 
 export type ElementProp = string | number | boolean | IDataAttribute | ElementPropertyHandler | ElementPropertyDataSource;
@@ -82,7 +85,7 @@ export type ElementConfig = {
 export type ViewTemplate = ElementConfig & ChildElemetConfig;
 
 export type ElementState = {
-  [attribute: string]: IDataAttribute;
+  [attribute: string]: IDataAttribute | DataAttributeValue;
 };
 
 export type ViewModule = Record<string, Function>;

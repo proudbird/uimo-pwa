@@ -1,16 +1,14 @@
 import { BaseClass } from '../ui/core/base';
-import { DataAttribute } from '../state';
-import { ChildElemetConfig, ContextState, DataAttributeEventHandler, DataAttributeValue, ElementEventHandler, ElementProp, ElementPropertyDataSource, ElementPropertyHandler, IDataAttribute, StyleProperties, ViewModule } from '../types';
-import View from '@/ui/core/view';
+import { ChildElemetConfig, DataAttributeEventHandler, DataAttributeValue, ElementEventHandler, ElementProp, StyleProperties, ViewModule } from '../types';
 
-export function setObservation(element: BaseClass, prop: ElementProp, context: ContextState, setter: DataAttributeEventHandler): void {
+export function setObservation(element: BaseClass, prop: ElementProp, context: IDataContext, setter: DataAttributeEventHandler): void {
 	if(!(prop || context)) return;
 
 	if(typeof prop === 'string') {
 		setter(prop);
-	} else if(prop instanceof DataAttribute) {
-		setter(prop.value);
-		element.observe(prop, () => setter((prop as IDataAttribute).value));
+	} else if((prop as IDataAttribute).DataAttribute) {
+		setter((prop as IDataAttribute).value);
+		element.observe((prop as IDataAttribute), () => setter((prop as IDataAttribute).value));
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
 		setter((prop as ElementPropertyHandler).handler!(context));
 		if((prop as ElementPropertyHandler).dependencies?.length) {
@@ -22,25 +20,25 @@ export function setObservation(element: BaseClass, prop: ElementProp, context: C
 		}
 	}  else if(typeof prop === 'object' && (prop as ElementPropertyDataSource).dataPath) {
 		prop = prop as ElementPropertyDataSource;
-		const attr = context[prop.dataPath];
+		const attr = context[prop.dataPath] as IDataAttribute;
 		setter(attr.value);
 		element.observe(attr, () => setter(attr.value));
 	}
 }
 
-export function getPropValue(prop: ElementProp, state: ContextState): DataAttributeValue {
+export function getPropValue(prop: ElementProp, state: IDataContext): DataAttributeValue {
 	if(!(prop || state)) return;
 
 	if(typeof prop === 'string') {
 		return prop;
-	} else if(prop instanceof DataAttribute) {
-		return prop.value;
+	} else if((prop as IDataAttribute).DataAttribute) {
+		return (prop as IDataAttribute).value;
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
 		return (prop as ElementPropertyHandler).handler!(state);
 	}
 }
 
-export function createElement(parent: BaseClass, config: ChildElemetConfig, context: ContextState, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
+export function createElement(parent: BaseClass, config: ChildElemetConfig, context: IDataContext, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
 	// first trying to create custom element
 	const Constructor = customElements.get(config.tagName.replace('@', 'uimo-'));
 	if(Constructor) {
@@ -55,7 +53,7 @@ export function createElement(parent: BaseClass, config: ChildElemetConfig, cont
 	}
 }
 
-export function buildElement(parent: BaseClass, config: ChildElemetConfig, context: ContextState, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
+export function buildElement(parent: BaseClass, config: ChildElemetConfig, context: IDataContext, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
   
 	const element = createElement(parent, config, context, viewModule);
 	if((element as BaseClass).isCustom) {

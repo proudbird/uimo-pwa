@@ -10,7 +10,7 @@ export default class Label extends customElement(description) {
 		return {
 			...this.config, 
 			props: {
-				innerHTML: this.state.value || tagName
+				innerHTML: this.config.props?.value || tagName
 			},
 		};
 	}
