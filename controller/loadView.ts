@@ -1,10 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { runInThisContext } from 'node:vm';
-import { transform, transformFile } from '@swc/core';
+import { Output, transform, transformFile } from '@swc/core';
 import { parse as parseYml } from 'yaml';
 import injectGlobals from './injectGlobals';
 import defineGlobals from './defineGlobals';
+import transformCode from './transform';
 
 // Type definition for the ViewModule
 interface ViewModule {
@@ -37,10 +38,13 @@ export default async function loadView(
 			resolve(cache[viewId.replace('.js.map', '')].map);
 		}
 
+		/**
+		 * Cache is turn off befor cache update mechanism will be implemented
+		 */
 		// If the view module is already cached, return the corresponding code from the cache.
-		if (cache[viewId] && cache[viewId].code) {
-			resolve(cache[viewId].code);
-		}
+		// if (cache[viewId] && cache[viewId].code) {
+		// 	resolve(cache[viewId].code);
+		// }
 
 		// Extract the viewName and relativeModuleFilePath from the viewId.
 		const viewIdParts = viewId.split('.');
@@ -56,15 +60,15 @@ export default async function loadView(
 				viewName
 			);
 
-			const globals = defineGlobals(module.code, cubeName, ['Catalogs']);
+			const globals = defineGlobals(module.code, cubeName, ['Catalogs', 'Modules']);
 			const globalsNames = [...Object.keys(globals.cubes), ...Object.keys(globals.objects)].join(', ');
 
 			// Generate the result string with the view module code, layout, and data.
 			const result = `(() => { const module = {}; window.views["${viewId}"] = { layout: ${JSON.stringify(
 				layout
-			)}, data: ${JSON.stringify(data)}, module }; ((exports, ${globalsNames}) => { ${
+			)}, data: ${JSON.stringify(data)}, getModule: (View) => { ((exports, View, ${globalsNames}) => { ${
 				module.code
-			} })(module, ...defineGlobals(${JSON.stringify(globals)}));})();//# sourceMappingURL=${viewId}.js.map`;
+			} })(module, View, ...defineGlobals(${JSON.stringify(globals)})); return module }};})();//# sourceMappingURL=${viewId}.js.map`;
 
 			// Cache the result and resolve the promise with the result.
 			cache[viewId] = { code: result, globals, map: module.map };
@@ -135,8 +139,10 @@ async function getViewConfig(
 	const loaders: { [key: string]: (filePath: string) => any } = {
 		json: require,
 		yml: loadYmlFile,
+		yaml: loadYmlFile,
 		js: require,
 		ts: loadTsFile,
+		tsx: loadTsFile,
 	};
 
 	for (const [extension, loader] of Object.entries(loaders)) {
@@ -161,7 +167,11 @@ async function getViewConfig(
  */
 function loadYmlFile(filePath: string): any {
 	const content = readFileSync(filePath, 'utf-8');
-	return parseYml(content);
+	try {
+		return parseYml(content);
+	} catch (error) {
+		console.log(error);
+	}
 }
 
 /**
@@ -172,23 +182,31 @@ function loadYmlFile(filePath: string): any {
  */
 async function loadTsFile(filePath: string): Promise<any> {
 	const source = readFileSync(filePath, 'utf8');
-	const result = await transform(source, {
-		filename: filePath,
-		module: {
-			type: 'commonjs',
-		},
-		isModule: true,
-		jsc: {
-			parser: {
-				syntax: 'typescript',
-			},
-			transform: {},
-		},
-	});
+	let result: Output = { code: '', map: '' };
+	// let result = await transform(source, {
+	// 	filename: filePath,
+	// 	module: {
+	// 		type: 'commonjs',
+	// 	},
+	// 	isModule: true,
+	// 	jsc: {
+	// 		parser: {
+	// 			syntax: 'typescript',
+	// 		},
+	// 		transform: {},
+	// 	},
+	// });
+
+	try {
+		//@ts-ignore
+		result = (await transformCode(source, filePath)) as Output;
+	} catch (error) {
+		console.log(error);
+	}
 
 	try {
 		const module = runInThisContext(`var exports = {}; ${result.code}`);
-		return module.default;
+		return module;
 	} catch (error) {
 		throw new Error(`Can not load view module file ${filePath}: ${(error as Error).message}`);
 	}
@@ -233,9 +251,9 @@ async function getViewModule(
  * @param fileAlias The alias for the module file.
  * @returns The loaded and transformed module.
  */
-async function loadModuleTsFile(filePath: string, fileAlias: string): Promise<any> {
+export async function loadModuleTsFile(filePath: string, fileAlias: string): Promise<any> {
 	const source = readFileSync(filePath, 'utf8');
-	const result = await transform(source, {
+	let result = await transform(source, {
 		filename: `${fileAlias}.ts`,
 		sourceMaps: true,
 		inlineSourcesContent: true,
@@ -251,9 +269,16 @@ async function loadModuleTsFile(filePath: string, fileAlias: string): Promise<an
 		},
 	});
 
-	// result.code = injectGlobals(result.code, ['Catalogs']);
+	try {
+		//@ts-ignore
+		result = (await transformCode(source, `${fileAlias}.ts`)) as Output;
+	} catch (error) {
+		console.log(error);
+	}
 
-	return { code: result.code?.replace('var a = 0;', '') || '', map: result.map?.replace('var a = 0;', '') || '' };
+	// result.code = injectGlobals(result.code, ['Catalogs']);
+	// return { code: result.code?.replace('var a = 0;', '') || '', map: result.map?.replace('var a = 0;', '') || '' };
+	return { code: result.code, map: result.map };
 }
 
 /**

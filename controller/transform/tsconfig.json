@@ -1,0 +1,28 @@
+{
+  // "extends": "./core/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "build",
+    "sourceMap": true,
+    "target": "es2016",
+    "useDefineForClassFields": false,
+    "module": "CommonJS",
+    "allowJs": false,
+    "strict": true,
+    "noUnusedLocals": false,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "jsx": "react-jsx",
+    "lib": ["esnext", "dom"],
+    "types": ["node"],
+    "rootDir": ".",
+    "noEmitOnError": false,
+    "skipDefaultLibCheck": true,
+    "moduleResolution": "Node",
+  },
+  "exclude": ["node_modules", "build", "debug", "babel-plugin-jsx-uimo"]
+}

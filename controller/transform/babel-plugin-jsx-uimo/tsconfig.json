@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "lib",
+    "sourceMap": true,
+    "target": "es2016",
+    "useDefineForClassFields": false,
+    "module": "CommonJS",
+    "strict": true,
+    "noUnusedLocals": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": ["node"],
+    "rootDir": ".",
+    "noEmitOnError": false,
+    "skipDefaultLibCheck": true,
+    "moduleResolution": "Node",
+    "noImplicitAny": false
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "lib"]
+}

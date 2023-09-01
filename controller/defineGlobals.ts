@@ -22,9 +22,11 @@ export default function defineGlobals(source: string, cubeName: string, triggers
 			for (const trig of triggers) {
 				const pattern2 = new RegExp(`${trig}`);
 				const matches = pattern2.exec(full)!;
-				console.log(matches.input.split(`${trig}.`)[1]);
-				const base = matches.input.split(`${trig}.`)[1];
-				cubes[key][trigger].push(base.replace(suffix, ''));
+				if(matches) {
+					console.log(matches.input.split(`${trig}.`)[1]);
+					const base = matches.input.split(`${trig}.`)[1];
+					cubes[key][trigger].push(base.replace(suffix, ''));
+				}
 			}
 		} else {
 			objects[trigger] = cubes[cubeName][trigger] || objects[trigger] || [];
@@ -32,9 +34,11 @@ export default function defineGlobals(source: string, cubeName: string, triggers
 			for (const trig of triggers) {
 				const pattern2 = new RegExp(`${trig}`);
 				const matches = pattern2.exec(full)!;
-				console.log(matches.input.split(`${trig}.`)[1]);
-				const base = matches.input.split(`${trig}.`)[1];
-				objects[trigger].push(base.replace(suffix, ''));
+				if(matches) {
+					console.log(matches.input.split(`${trig}.`)[1]);
+					const base = matches.input.split(`${trig}.`)[1];
+					objects[trigger].push(base.replace(suffix, ''));
+				}
 			}
 		}
 	}

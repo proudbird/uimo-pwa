@@ -1,0 +1,30 @@
+{
+  "name": "uimo-controller",
+  "version": "0.0.1",
+  "main": "./controller/build/uimo.js",
+  "types": "./controller/uimo.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch:controller": "tsc -w",
+    "watch:transform": "tsc -p ./transform -w",
+    "watch": "run-p watch:*"
+  },
+  "dependencies": {
+    "@babel/cli": "^7.22.9",
+    "@babel/core": "^7.22.9",
+    "@babel/plugin-syntax-jsx": "^7.22.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.22.5",
+    "@babel/preset-typescript": "^7.22.5",
+    "babel-plugin-jsx": "^1.2.0",
+    "catalogist": "^1.0.4",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.22.5",
+    "@types/babel__core": "^7.20.1",
+    "@types/lodash": "^4.14.195",
+    "@types/node": "^20.4.4",
+    "@types/react": "^18.2.15",
+    "typescript": "^5.1.6"
+  }
+}

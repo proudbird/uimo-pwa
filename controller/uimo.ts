@@ -1,6 +1,8 @@
 import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import loadView from './loadView';
+import initApp from './initApp';
+import loadModule from './loadModule';
 
 interface UimoProps {
   pathToCubes: string;
@@ -19,7 +21,7 @@ class Uimo {
 	}
 
 	paths = {
-		public: '../../public/',
+		public: '../../dist/',
 		plarform: '../../platform/',
 	};
 
@@ -46,6 +48,12 @@ class Uimo {
  * @returns A promise that resolves to the view module code or map.
  */
 	loadView = loadView;
+
+	loadModule = loadModule;
+
+	initApp(params) {
+		return initApp(params);
+	}
 }
 
-export default Uimo;
+export { Uimo };

@@ -1,0 +1,6 @@
+{
+  "main": "./lib/index.js",
+  "scripts": {
+    "watch": "tsc -w"
+  }
+}

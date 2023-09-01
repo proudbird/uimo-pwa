@@ -1,0 +1,8 @@
+{
+  "main": "build/index.js",
+  "scripts": {
+    "watch:transform": "tsc -w",
+    "watch:plugin": "tsc -p ./babel-plugin-jsx-uimo -w",
+    "watch": "run-p watch:*"
+  }
+}
