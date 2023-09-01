@@ -1,6 +1,6 @@
 @import '~@spectrum-css/textfield/dist/index-vars';
 
-uimo-textinput > input {
+uimo-numberinput > input {
   @extend .spectrum-Textfield-input;
 
   &.size-small {

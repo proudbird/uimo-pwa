@@ -1,4 +1,4 @@
-
+//@ts-nocheck
 import { customElement, DefineElement } from '@/ui/core/base';
 import { ElementConfig } from '@/types';
 import description from './button.desc';
@@ -12,16 +12,16 @@ export default class Button extends customElement(description) {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.props.size} variant-accent treatment-fill ${this.props.processing ? 'processing' : ''}`;}
+					return `size-${this.size} variant-accent treatment-fill ${this.processing ? 'processing' : ''}`;}
 			},
 			attributes: {
 				role: 'button',
-				disabled: !!this.config.props?.disabled
+				disabled: !!this.props.disabled
 			}, 
 			children: [{
-				tagName: 'uimo-label',
+				tagName: 'label',
 				props: {
-					value: this.config.props?.label || tagName
+					value: this.props.label || tagName
 				},
 			}]
 		};

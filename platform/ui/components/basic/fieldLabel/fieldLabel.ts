@@ -14,7 +14,7 @@ export default class FieldLabel extends customElement(description) {
 					return `size-${this.props.size}`;}
 			},
 			children: [{
-				tagName: 'label',
+				tagName: 'native:label',
 				props: {	
 					htmlFor: this.config.props?.for || '',
 					innerHTML: this.config.props?.value || tagName

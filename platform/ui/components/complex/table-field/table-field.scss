@@ -1,0 +1,24 @@
+uimo-table-field {
+  display: flex;
+  width: 100%;
+  padding-inline: 6px;
+  padding-block: 6px;
+
+  cursor: default;
+  
+  border-bottom: 1px solid var(--spectrum-global-color-gray-400);
+
+  &:hover {
+    background-color: var(--spectrum-global-color-gray-300);
+    border-inline-start: 1px solid var(--spectrum-global-color-gray-100);
+    padding-inline-start: 5px;
+    // transition: background-color 0.05s ease-in-out;
+  }
+  
+  &.hovered:not(:hover) {
+    background-color: var(--spectrum-global-color-gray-200);
+    border-inline-start: 1px solid var(--spectrum-global-color-gray-100);
+    padding-inline-start: 5px;
+    // transition: background-color 0.05s ease-in-out;
+  }
+}

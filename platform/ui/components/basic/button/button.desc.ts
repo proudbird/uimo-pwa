@@ -4,7 +4,8 @@ export default {
 			title: 'Label',
 			mutable: true,
 			responsive: true,
-			type: 'string'
+			type: 'string',
+			defaultValue: 'Button'
 		},
 		variant: {
 			title: 'Variant',

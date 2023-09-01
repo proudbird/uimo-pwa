@@ -1,13 +1,13 @@
 //@ts-nocheck
 import { customElement, DefineElement } from '@/ui/core/base';
 import { ElementConfig } from '@/types';
-import description from './textField.desc';
+import description from './numberField.desc';
 import { genId } from '@/utils/helpers';
 
-const tagName = 'textfield';
+const tagName = 'numberfield';
 
 @DefineElement(tagName)
-export default class TextField extends customElement(description) {
+export default class NumberField extends customElement(description) {
 	render(): ElementConfig {
 		const inputId = genId();
 		return {
@@ -24,7 +24,7 @@ export default class TextField extends customElement(description) {
 					for: inputId
 				}
 			},{
-				tagName: '@textinput',
+				tagName: '@numberinput',
 				props: {
 					inputId,
 					size: this.props.size

@@ -1,0 +1,18 @@
+uimo-table-header-cell {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+
+  padding-inline: 6px;
+  padding-block: 10px;
+
+  background-color: var(--spectrum-global-color-gray-300);
+  
+  border-bottom: 1px solid var(--spectrum-global-color-gray-400);
+
+  &:hover {
+    // border-inline-start: 1px solid var(--spectrum-global-color-gray-400);
+    border-inline-end: 1px solid var(--spectrum-global-color-gray-400);
+    padding-inline-end: 5px;
+  }
+}

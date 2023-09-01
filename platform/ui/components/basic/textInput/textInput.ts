@@ -12,16 +12,19 @@ export default class TextInput extends customElement(description) {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.props.size}`;}
+					return `size-${this.size}`;}
 			},
 			children: [{
 				tagName: 'input',
 				id: String(this.config?.props?.inputId) || '',
 				props: {
-					value: this.state.value
+					value: this.data,
 				},
 				events: {
-					input: (e: Event) => this.state.value.value = (e.target as HTMLInputElement)!.value
+					input: (e: Event) => {
+						this.data.value = (e.target as HTMLInputElement)!.value;
+						this.config.events?.input?.(e);
+					}
 				}
 			}]
 		};
