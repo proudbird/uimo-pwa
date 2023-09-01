@@ -1,22 +1,31 @@
-import { DataAttributeValue, IDataAttribute } from '../types';
 import DataAttributeChangeEvent from './event';
 import { BaseClass } from '../ui/core/base';
+import dataAttributeConstructors from'@/core/data/constructors';
+
 
 export interface IStateDefintion {
   [key: string]: IDataAttribute;
 }
 
 export default class State extends EventTarget {
-	constructor(owner: BaseClass, definition: IStateDefintion) {
+	constructor(owner: BaseClass, definition: DataDefinition | StateDefinition, initData?: Record<string, any>) {
 		super();
 
 		for(const [attrName, attr] of Object.entries(definition)) {
-			Object.defineProperty(owner, attrName, {
-				get: () => attr.value,
-				set: (value: DataAttributeValue) => attr.value = value
+			const options = attr;
+			if(initData) {
+				options.initValue = initData[attrName];
+			}
+			let dataAttribute: IDataAttribute;
+			const Constructor = dataAttributeConstructors[attr.type as StateValueType];
+			dataAttribute = new Constructor(options as any);
+			Object.defineProperty(this, attrName, {
+				value: dataAttribute,
+				writable: false,
 			});
-			owner.observe(attr, () => {
-				this.dispatchEvent(new DataAttributeChangeEvent(attr, attrName));
+
+			owner.observe(dataAttribute, () => {
+				owner.dispatchEvent(new DataAttributeChangeEvent(dataAttribute, attrName));
 			});
 		}
 	}

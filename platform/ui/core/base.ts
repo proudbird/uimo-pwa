@@ -1,9 +1,12 @@
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
-import { ContextState, CustomElement, CustomElementProps, DataAttributeValue, ElementConfig, ElementDefinition, ElementEventHandler, ElementPropertyDataSource, ElementState, StyleProperties, ViewModule } from '@/types';
+import { ChildElemetConfig, ContextState, DataAttributeEventHandler, DataAttributeValue, ElementConfig, ElementEventHandler, ElementPropertyDataSource, ElementState, StyleProperties, ViewModule } from '@/types';
 import DataAttributeChangeEvent from '@/state/event';
 import View from './view';
+import PropertyManager from '../../core/data/manager';
+import Context from '../../core/data/context';
+import State from '../../state/state';
 
 type Observation = {
   observable: IDataAttribute,
@@ -15,8 +18,15 @@ interface Construtable<T> {
   prototype: T;
 }
 
+export type CustomElementData = {
+	context: IDataContext;
+	state: IDataContext;
+};
+
+export type CustomElementArguments = [View, ElementConfig, CustomElementData, ViewModule];
+
 interface ConstrutableB<T> {
-  new (owner: View, config: ElementConfig, context?: ContextState, module?: ViewModule): T;
+  new (...args: CustomElementArguments): T;
   prototype: T;
 }
 
@@ -29,6 +39,7 @@ export interface BaseClass extends HTMLElement {
   get elements(): Record<string, BaseClass>;
   get owner(): View;
   observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void;
+	defineState(stateDefinition: StateDefinition, initData?: Record<string, any>): void;
 }
 
 
@@ -50,86 +61,60 @@ export function DefineElement(tagName: string) {
 function customElementFabric<D extends ElementDefinition>(description: D): ReturnClassType<D> {
 	class Base extends HTMLElement implements BaseClass {
 		#id: string;
-		#config: ElementConfig = {};
-		#state: ElementState;
+		#config: ElementConfig = {} as ElementConfig;
+		#state: IDataContext;
 		#props: IDataContext;
+		#propsManager: PropertyManager<D>;
 		#context: IDataContext;
 		#viewModule: ViewModule;
 		#elements: Record<string, BaseClass> = {};
 		#owner: View;
+		#data: IDataAttribute | IDataAttributeIterable = {} as IDataAttribute;
   
 		#observables: Array<Observation> = [];
   
 		public get isCustom(): true {
 			return true;
 		}
-
-		public props: CustomElementProps<D> = {} as CustomElementProps<D>;
   
 		constructor(...args: any[]) {
 			super();
-			const [owner, config, context, viewModule] = args;
-			this.#id = genId();
+			const [owner, config, data, viewModule] = args;
 			this.#config = config;
-			this.#state = {};
+			this.#id = this.#config.id || genId();
+			this.#state = data.state || {};
 			this.#props = {};
-			this.#context = context || {};
+			this.#context = data.context || {};
 			this.#viewModule = viewModule || {};
 			this.#owner = owner;
 
-			// defining object state on base of element specification 
-			Object.entries(description.props || {}).map(([propName, prop]) => {
-				if(config.props && config.props[propName]) {
-					if(typeof config.props[propName] === 'object' && (config.props[propName] as ElementPropertyDataSource).dataPath) {
-						Object.defineProperty(this.#props, propName, { 
-							value: context[config.props[propName].dataPath],
-							writable: false 
-						});
-					} else {
-						Object.defineProperty(this.#props, propName, { 
-							value: config.props[propName],
-							writable: false 
-						});
-					}
-				} else {
-					Object.defineProperty(this.#props, propName, { 
-						value: prop.defaultValue,
-						writable: false 
-					});
-				}
+			this.#propsManager = new PropertyManager(this, description, config.props || {}, data);
 
-				Object.defineProperty(this.props, propName, {
+			for(let [propName, prop] of Object.entries(this.#propsManager)) {
+				Object.defineProperty(this, propName, { 
 					get: () => {
-						if(this.#props[propName]?.DataAttribute) {
-							return (this.#props[propName]).value;
-						} else {
-							return this.#props[propName];
-						}
+						return this.#propsManager[propName as keyof PropertyManager<D>];
 					},
 					set: (value: any) => {
-						if(this.#props[propName]?.DataAttribute) {
-							(this.#props[propName]).value = value;
-						} else {
-							Object.defineProperty(this.#props, propName, { 
-								value,
-								writable: false 
-							});
-						}
+						this.#propsManager[propName as keyof PropertyManager<D>] = value;
 					}
 				});
-				
-				if(this.#props[propName]?.DataAttribute) {
-					this.observe((this.#props[propName]), () => {
-						this.dispatchEvent(new DataAttributeChangeEvent((this.#props[propName]), propName));
-					});
+			}
+
+			if(this.#config.data) {
+				if(typeof this.#config.data === 'object' && (this.#config.data as ElementPropertyDataSource).path) {
+					this.#data =  data.context[(this.#config.data as ElementPropertyDataSource).path] as IDataAttribute;
+				} else {
+					this.#data =  this.#config.data as IDataAttribute;
 				}
-			});
+				setObservation(this, this.#config.data!, data, () => {});
+			}
   
 			this.#build();
 		}
   
 		private disconnectedCallback(): void {
-			for(const { observable, callback } of this.#observables) {
+			for(let { observable, callback } of this.#observables) {
 				observable.removeEventListener('change', callback);
 			}
 			this.#observables = [];
@@ -142,23 +127,42 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 				callback 
 			});
 		}
+
+		public defineState(stateDefinition: StateDefinition, initData?: Record<string, any>): void {
+			this.#state = new State(this, stateDefinition, initData);
+		}
   
+		/**
+		 * Defines element configuration to be rendered
+		 * @returns {ElementConfig} - element configuration
+		 */
 		protected render(): ElementConfig {
 			return this.config;
 		}
   
 		#build(): void {
 			const template = this.render();
+
+			const data = {
+				context: this.#context || {},
+				state: this.#state || {}
+			};
       
 			this.setAttribute('id', this.#id);
 			template.alias && this.setAttribute('alias', template.alias as string); 
   
-			template.className && setObservation(this, template.className, this.#context, (value: DataAttributeValue) => {
-				this.setAttribute('class', `${value}`.trim()); 
-			});
+			if(template.className) {
+				const prop = template.className;
+				const setter = (value: DataAttributeValue) => this.setAttribute('class', value as string); 
+				setObservation(this as BaseClass, prop, data, setter);
+			}
+
+			// template.className && setObservation(this, template.className, data, (value: DataAttributeValue) => {
+			// 	this.setAttribute('class', `${value}`.trim()); 
+			// });
   
 			Object.entries(template.attributes || {}).map(([name, prop]) => {
-				setObservation(this, prop!, this.#context, (value: DataAttributeValue) => {
+				setObservation(this, prop!, data, (value: DataAttributeValue) => {
 					if(value === true) {
 						this.setAttribute(name, ''); 
 					} else if(value === false) {
@@ -170,16 +174,32 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			});
   
 			Object.entries(template.props || {}).map(([name, prop]) => {
+
+				function setPropsObservation(prop: PropertyManager<any>, name: string, setter: DataAttributeEventHandler): void {
+					if(!(prop)) return;
+				
+					prop.addEventListener(name, (e: Event) => {
+						setter((e as CustomEvent).detail.value);
+					});
+				}
+
 				const setter = (value: DataAttributeValue) => {
 					//@ts-ignore
 					this[name] = value; 
 				};
-				setObservation(this, prop!, this.#context, setter);
+
+				if((prop instanceof PropertyManager)) {
+					setPropsObservation(prop, name, setter);
+				} else {
+					setObservation(this, prop!, data, setter);
+				}
 			});
+
+			
   
 			for(const styleName in template.style) {
 				const prop = template.style[styleName as StyleProperties];
-				setObservation(this, prop!, this.#context, (value: DataAttributeValue) => {
+				setObservation(this, prop!, data, (value: DataAttributeValue) => {
 					this.style[styleName as StyleProperties] = value as any;
 				});
 			}
@@ -206,12 +226,36 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 					this.innerHTML = template.children;
 				} else {
 					for(const childConfig of template.children) {
-						const child = buildElement(this, childConfig, this.#context, this.#viewModule);
+						if(typeof childConfig === 'string') {
+							this.innerHTML = childConfig;
+							continue;
+						}
+						if(childConfig.type === 'slot') continue;
+						const child = buildElement(this, childConfig, data, this.#viewModule);
 						this.appendChild(child);
 						if(childConfig.alias) {
 							this.#elements[childConfig.alias] = child as BaseClass;
 						}
 					}
+				}
+			}
+		}
+
+		public addElements(elements: ChildElemetConfig[]): void {
+			const data = {
+				context: this.#context || {},
+				state: this.#state || {}
+			};
+
+			if(!Array.isArray(elements)) {
+				elements = [elements];
+			}
+
+			for(const elementConfig of elements) {
+				const element = buildElement(this, elementConfig, data, this.#viewModule);
+				this.appendChild(element);
+				if(elementConfig.alias) {
+					this.#elements[elementConfig.alias] = element as BaseClass;
 				}
 			}
 		}
@@ -238,12 +282,12 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			return this.#config;
 		} 
   
-		// public get props(): CustomElementProps<any> {
-		// 	return this.#props;
-		// }  
+		public get props(): CustomElementProps<any> {
+			return this.#propsManager;
+		}  
   
-		public get state(): ElementState {
-			return this.#props;
+		public get state(): ContextState {
+			return this.#state;
 		}  
   
 		public get elements(): Record<string, BaseClass> {
@@ -256,6 +300,10 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 
 		public get owner() {
 			return this.#owner;
+		}
+
+		public get data() {
+			return this.#data;
 		}
 	}
 

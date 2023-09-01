@@ -1,10 +1,11 @@
 import { loadApp } from './core';
+import Application from './core/application';
 
-class Cube {
+export class Cube {
 	constructor(public name: string) {}
 }
 
-class AppObject {
+export class AppObject {
 	constructor(public name: string, public cube: string, objects: any) {
 		for(const appObjectName of objects) {
 			const appObject = new Proxy(new Instance(cube, name, appObjectName), proxyhandler);
@@ -39,16 +40,19 @@ const proxyhandler: ProxyHandler<Instance> = {
 					})
 				});
 				const result = await response.json();
-				if(result.error) {
-					reject(result.error);
-				} else {
+				// if(result.error) {
+				// 	reject(result.error);
+				// } else {
 					resolve(result);
-				}
+				// }
 			});
 		};
 	}
 };
 
+window.Application = new Application();
+window.cubes = {};
+window.modules = {};
 window.views = {};
 window.defineGlobals = (globals: any) => {
 	const params = [] as any;

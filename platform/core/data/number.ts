@@ -25,7 +25,7 @@ export default class NumberAttribute extends DataAttribute implements IDataAttri
    */
 	constructor({ 
 		initValue = 0, 
-		maxLength = 0, 
+		maxLength = 16, 
 		precision = 0,
 		truncate = true,
 		round = 'up',
@@ -43,8 +43,6 @@ export default class NumberAttribute extends DataAttribute implements IDataAttri
 	}
 
 	set value(value: number) {
-		this.#prevValue = this.#value;
-
 		const roundedValue = this.#roundToPrecision(value, this.precision);
 		const valueStr = roundedValue.toString();
 		const [integerPart, decimalPart = ''] = valueStr.split('.');
@@ -84,11 +82,13 @@ export default class NumberAttribute extends DataAttribute implements IDataAttri
 			throw new ValueError(`Invalid maximum length (${this.maxLength}) or maximum precision (${this.precision})`);
 		}
 
+		this.#prevValue = this.#value;
+
 		this.dispatchEvent(new DataAttributeChangeEvent(this, this.#value, this.#prevValue));
 	}
 
-	#roundToPrecision(value: number, precision: number): number {
+	#roundToPrecision(value: number | string, precision: number): number {
     const multiplier = Math.pow(10, precision);
-    return Math.round(value * multiplier) / multiplier;
+    return Math.round(parseFloat(value as string) * multiplier) / multiplier;
   }
 }

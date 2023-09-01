@@ -23,3 +23,5 @@ yarn-error.log*
 /dist
 /controller/build
 /public
+
+/controller/node_modules

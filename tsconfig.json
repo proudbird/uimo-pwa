@@ -18,7 +18,10 @@
     "isolatedModules": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "noEmit": true,
+    "noEmitOnError": false,
+    "noEmit": false,
+    
+    "jsx": "preserve",
     "paths": {
       "./*": ["./platform/*"],
       "@/*": ["./platform/*"],
@@ -28,5 +31,6 @@
   "include": [
     "platform",
     "app"
-  ]
+  ],
+  "exclude": ["controller"]
 }

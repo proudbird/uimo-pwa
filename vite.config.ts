@@ -3,8 +3,13 @@ import path from 'path';
 
 export default defineConfig({
 	build: {
-		outDir: './public',
+		rollupOptions: {
+			input: {path: 'platform/index.html'},
+			
+		},
+		outDir: 'public',
 		sourcemap: true,
+
 	},
 	resolve: {
 		alias:[
@@ -28,7 +33,7 @@ export default defineConfig({
 				target: 'http://127.0.0.1:21021/',
 				changeOrigin: true,
 				bypass: function(req) {
-					if (/\/(app)(.*)\/(view|instance)\//.test(req.url || '')) {
+					if (/\/(app)(.*)\/(session|login|init|cube|module|list|view|instance)\//.test(req.url || '')) {
 						return null;
 					}
 					if (/\/(app)(.*)\/(view)\//.test(req.url || '')) {

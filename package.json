@@ -2,7 +2,7 @@
   "name": "uimo",
   "version": "0.0.1",
   "main": "./controller/build/uimo.js",
-  "types": "./controller/build/uimo.d.ts",
+  "types": "./types.d.ts",
   "dependencies": {
     "@spectrum-css/button": "^10.1.3",
     "@spectrum-css/fieldlabel": "^7.0.11",
@@ -10,27 +10,31 @@
     "@spectrum-css/textfield": "^6.0.3",
     "@spectrum-css/typography": "^5.0.24",
     "@spectrum-css/vars": "^9.0.7",
-    "@swc/core": "^1.3.67",
+    "@swc/core": "^1.3.70",
+    "@types/react": "^18.2.17",
     "nano": "^10.1.2",
     "nanoid": "^4.0.2",
     "swc": "^1.0.11",
+    "uimo-transform": "file:../uimo-transform",
     "yaml": "^2.3.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
     "eslint": "^8.43.0",
+    "npm-run-all": "^4.1.5",
     "sass": "^1.62.1",
     "typescript": "^5.0.2",
     "vite": "^4.3.2"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "watch": "tsc && vite build --watch",
-    "preview": "vite preview",
-    "build:controller": "tsc -p ./controller/tsconfig.json",
-    "watch:controller": "tsc -p ./controller/tsconfig.json --watch",
-    "lint": "eslint . --fix"
+    "build:platform": "tsc && vite build",
+    "watch:platform": "tsc && vite build --watch",
+    "build:controller": "npm -prefix ./controller run build",
+    "watch:controller": "npm -prefix ./controller run watch",
+    "watch": "run-p watch:*",
+    "lint": "eslint . --fix",
+    "preinstall": "npm -prefix ./controller install"
   }
 }

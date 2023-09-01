@@ -3,6 +3,9 @@ import './style.scss';
 
 import View from './ui/core/view';
 import loadModule from './core/loadModule';
+import { AppObject, Cube } from './index';
+
+import appFrame from './ui/builtIn/app-frame';
 
 export async function loadApp(root: HTMLElement): Promise<void> {
 	const app = await defineApp();
@@ -13,21 +16,58 @@ export async function loadApp(root: HTMLElement): Promise<void> {
 
 export async function defineApp(): Promise<HTMLElement | undefined> {
 
-	await loadModule('/app/index/view/Admin.Views.Index');
+	const response = await fetch(`${location.pathname}/init/`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+	});
+	const result = await response.json();
 
-	const viewDefinition = window.views['Admin.Views.Index'];
-
-	if(viewDefinition.error) {
-		const errorContainer = document.createElement('div');
-		errorContainer.innerHTML = `
-			<h1>Error</h1>
-			<p>${viewDefinition.error}</p>
-		`;
-		return errorContainer;
+	for(const alias in result.cubes) {
+		if(!(/\.client/.test(alias))) continue;
+		try {
+			await loadModule(`cube/${alias}`);
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
-	const { layout, data, module } = viewDefinition;
-	const view = new View(layout, data, module);
+	for(const alias in result.modules) {
+		try {
+			await loadModule(`module/${alias}`);
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
-	return view.element;
+	for(let moduleId in window.modules) {
+		const module = window.modules[moduleId].getModule();
+		if(module.onStart) {
+			await module.onStart();
+		}
+	}
+
+	const { layout, data, getModule } = appFrame;
+
+	// await loadModule('/app/index/view/Admin.Views.register');
+
+	// const viewDefinition = window.views['Admin.Views.register'];
+
+	// if(viewDefinition.error) {
+	// 	const errorContainer = document.createElement('div');
+	// 	errorContainer.innerHTML = `
+	// 		<h1>Error</h1>
+	// 		<p>${viewDefinition.error}</p>
+	// 	`;
+	// 	return errorContainer;
+	// }
+
+	// const { layout, data, getModule } = viewDefinition;
+	//@ts-ignore
+	const view = new View(layout, data, getModule);
+
+	window.Application.appFrame = view;
+
+	return view.node;
 }

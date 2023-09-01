@@ -1,7 +1,10 @@
 
+import { BaseClass, CustomElementData } from "./ui/core/base";
+import View from "./ui/core/view";
 
+export type DynamicList = {};
 
-export type DataAttributeValue = boolean | string | number | Date | undefined;
+export type DataAttributeValue = boolean | string | number | Date | undefined | DynamicList;
 
 export type EventHandler<T extends DataAttributeValue> = (value: T) => void;
 
@@ -57,14 +60,14 @@ export type ElementPropertyHandler = {
 };
 
 export type ElementPropertyDataSource = {
-  dataPath: string;
+  path: string;
   source?: string;
 };
 
 export type ElementProp = string | number | boolean | IDataAttribute | ElementPropertyHandler | ElementPropertyDataSource;
 
 export type ElementProps = {
-  [prop: string]: ElementProp;
+  [prop: string]: ElementProp | undefined;
 };
 
 export type ChildElemetConfig = ElementConfig & { 
@@ -73,6 +76,8 @@ export type ChildElemetConfig = ElementConfig & {
 };
 
 export type ElementConfig = {
+  type?: 'element' | 'slot' | 'native';
+  id?: string;
   alias?: string;
   className?: ElementProp;
   props?: ElementProps;
@@ -80,6 +85,7 @@ export type ElementConfig = {
   style?: Partial<StyleDefinidion>;
   events?: Record<string, ConfigEventHandler>;
   children?: string | Array<ChildElemetConfig>;
+  data?: IDataAttribute | ElementPropertyDataSource;
 };
 
 export type ViewTemplate = ElementConfig & ChildElemetConfig;
@@ -118,28 +124,13 @@ export type StyleDefinidion = {
   [propery in Partial<StyleProperties>]: string | IDataAttribute | ElementPropertyHandler;
 }
 
-export type DOMElement = HTMLElement | SVGSVGElement | CustomElement<any>;
+
 
 export type ElementEventHandler = (event: Event) => void;
 
 export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never;
 
-export type ElementDefinition = {
-  readonly props: ElementPropDefinition;
-  readonly events?: any;
-};
 
-export type ElementPropDefinition = {
-  readonly [name: string]: {
-    readonly order?: number;
-    readonly title?: string;
-    readonly mutable?: boolean;
-    readonly responsive?: boolean;
-    readonly type:  ElementPropPrimitiveType | readonly ElementPropListType[];
-    readonly defaultValue?: any;
-    readonly translate?: boolean;
-  }
-};
 
 export type ElementPropPrimitiveType = 'string' | 'number' | 'boolean' | ' date';
 
@@ -149,23 +140,4 @@ export type ElementPropListType = {
   // readonly default?: true;
 };
 
-export type TypesMap = {
-  'string': string;
-  'number': number;
-  'boolean': boolean;
-  'date': Date;
-};
-
-export type CustomElementProps<T extends ElementDefinition> = { -readonly [K in keyof T['props']]: 
-  T['props'][K]['type'] extends keyof TypesMap 
-    ? TypesMap[T['props'][K]['type']]
-    : T['props'][K]['type'][number] extends ElementPropListType 
-      ? T['props'][K]['type'][number]['value'] 
-      : null
-};
-
-export type CustomElementArgs = [ElementConfig, ContextState?];
-
-export type CustomElement<T extends ElementDefinition = { props: Record<string, any>}> = {
-  props: CustomElementProps<T>;
-}
+export type BuildElememtParams = [View, ChildElemetConfig, CustomElementData, ViewModule];
