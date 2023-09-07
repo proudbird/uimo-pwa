@@ -1,22 +1,20 @@
 
 import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementConfig } from '@/types';
+import { type CustomElementOptions, ElementDefinition, IDataAttribute } from '@/types';
 import description from './numberInput.desc';
-import StringAttribute from '../../../../core/data/string';
-import Context from '../../../../core/data/context';
 
 const tagName = 'numberinput';
 
 @DefineElement(tagName)
 export default class NumberInput extends customElement(description) {
 
-	constructor(...args: any[]) {
-		const state = new Context({ inputValue: 'string' });
-		args[2].state = state;
-		super(...args);
+	constructor({ stateDefinition, ...rest }: CustomElementOptions) {
+		stateDefinition = stateDefinition || {};
+		stateDefinition.inputValue = { type: 'string', defaultValue: '' };
+		super({ stateDefinition, ...rest });
 	}
 
-	render(): ElementConfig {
+	render(): ElementDefinition {
 		return {
 			...this.config,
 			className: {
@@ -46,9 +44,21 @@ export default class NumberInput extends customElement(description) {
 							this.state.inputValue.value = value;
 							return;
 						}
-						this.data.value = (e.target as HTMLInputElement)!.value;
-						this.state.inputValue.value = this.data.value;
-						this.config.events?.input?.(e);
+						(this.data as IDataAttribute).value = (e.target as HTMLInputElement)!.value;
+						this.state.inputValue.value = (this.data as IDataAttribute).value;
+						const handler = this.config.events?.input;
+						if(handler) {
+							if(typeof handler === 'string') {
+								const moduleHandler = (this.owner as any)[handler];
+								if(moduleHandler) {
+									moduleHandler(e);
+								} else {
+									throw new Error(`Handler ${handler} not found in module`);
+								};
+							} else {
+								handler(e);
+							}
+						}
 					}
 				}
 			}]

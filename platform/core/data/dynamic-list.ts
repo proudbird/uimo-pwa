@@ -61,7 +61,7 @@ export default class DynamicListAttribute extends DataAttribute implements IData
 		this.#provider.attributes = data.attributes;
 		this.#provider.entries = data.entries;
 
-		this.dispatchEvent(new CustomEvent('load', { detail: this }));
+		this.dispatchEvent(new DataAttributeChangeEvent(this));
 	}
 
 	[Symbol.iterator] = () => {

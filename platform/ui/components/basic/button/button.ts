@@ -1,13 +1,12 @@
-//@ts-nocheck
 import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementConfig } from '@/types';
+import { ElementDefinition } from '@/types';
 import description from './button.desc';
 
 const tagName = 'button';
 
 @DefineElement(tagName)
 export default class Button extends customElement(description) {
-	render(): ElementConfig {
+	render(): ElementDefinition {
 		return {
 			...this.config,
 			className: {

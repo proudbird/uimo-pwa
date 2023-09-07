@@ -1,6 +1,7 @@
 import DataAttribute from "./dataAttribute";
 import { DataAttributeChangeEvent } from "./events";
 import { ValueError } from "./errors";
+import { IDataAttribute, StringAttributeOptions } from "@/types";
 
 /**
  * Manages a string value and notifies consumers about any changes to that value

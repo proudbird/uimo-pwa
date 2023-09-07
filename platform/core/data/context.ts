@@ -1,7 +1,8 @@
 import dataAttributeConstructors from'@/core/data/constructors';
+import { DataDefinition, IDataAttribute, IState, StateDefinition, StateValueType } from '@/types';
 
-export default class Context implements IDataContext {
-  readonly [name: string]: IDataAttributeBase & IDataAttribute;
+export default class Context implements IState {
+  readonly [name: string]: IDataAttribute;
 
 	constructor(definition: DataDefinition | StateDefinition, initData?: Record<string, any>) {
 		for(const [attrName, attr] of Object.entries(definition)) {

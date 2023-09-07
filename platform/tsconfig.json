@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["./types.d.ts"]
+    "types": ["./types.ts"]
   },
   "extends": "../tsconfig.json"
 }

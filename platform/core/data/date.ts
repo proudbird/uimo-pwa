@@ -1,5 +1,6 @@
 import DataAttribute from "./dataAttribute";
 import { DataAttributeChangeEvent } from "./events";
+import { DateAttributeFormat, DateAttributeInitValue, DateAttributeOptions, IDataAttribute } from "@/types";
 
 /**
  * Manages a Date value and notifies consumers about any changes to that value

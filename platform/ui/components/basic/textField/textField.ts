@@ -1,6 +1,5 @@
-//@ts-nocheck
 import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementConfig } from '@/types';
+import { ElementDefinition } from '@/types';
 import description from './textField.desc';
 import { genId } from '@/utils/helpers';
 
@@ -8,7 +7,7 @@ const tagName = 'textfield';
 
 @DefineElement(tagName)
 export default class TextField extends customElement(description) {
-	render(): ElementConfig {
+	render(): ElementDefinition {
 		const inputId = genId();
 		return {
 			...this.config,

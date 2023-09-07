@@ -1,51 +1,39 @@
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
-import { ChildElemetConfig, ContextState, DataAttributeEventHandler, DataAttributeValue, ElementConfig, ElementEventHandler, ElementPropertyDataSource, ElementState, StyleProperties, ViewModule } from '@/types';
-import DataAttributeChangeEvent from '@/state/event';
-import View from './view';
+import { 
+	ChildElementDefinition,
+	Constructable, 
+	ConstructableCustomElement, 
+	CustomElement, 
+	CustomElementOptions, 
+	CustomElementProps, 
+	DataAttributeSetter, 
+	DataAttributeValue, 
+	ElementDefinition, 
+	ElementDescription, 
+	ElementEventHandler, 
+	ElementPropertyDataSource, 
+	ICustomElement, 
+	IDataAttribute, 
+	IDataAttributeIterable, 
+	IState, 
+	IView, 
+	StateDefinition, 
+	StyleProperties, 
+	ViewModule 
+} from '@/types';
 import PropertyManager from '../../core/data/manager';
-import Context from '../../core/data/context';
-import State from '../../state/state';
+import { createState } from '../../state/state';
 
 type Observation = {
   observable: IDataAttribute,
   callback: EventListenerOrEventListenerObject
 }
 
-interface Construtable<T> {
-  new (...args: any[]): T;
-  prototype: T;
-}
-
-export type CustomElementData = {
-	context: IDataContext;
-	state: IDataContext;
-};
-
-export type CustomElementArguments = [View, ElementConfig, CustomElementData, ViewModule];
-
-interface ConstrutableB<T> {
-  new (...args: CustomElementArguments): T;
-  prototype: T;
-}
-
-export interface BaseClass extends HTMLElement {
-  isCustom: true;
-  get config(): ElementConfig;
-  get state(): ElementState;
-  get props(): CustomElementProps<any>;
-  get context(): ContextState;
-  get elements(): Record<string, BaseClass>;
-  get owner(): View;
-  observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void;
-	defineState(stateDefinition: StateDefinition, initData?: Record<string, any>): void;
-}
-
-
 // decorator to register class as custom element
 export function DefineElement(tagName: string) {
-	return function <T extends Construtable<BaseClass>>(constructor: T) {
+	return function <T extends Constructable<ICustomElement>>(constructor: T) {
 		class Extended extends constructor {
 			_tagName: string;
 			constructor(...args: any[]) {
@@ -58,17 +46,19 @@ export function DefineElement(tagName: string) {
 	};
 }
 
-function customElementFabric<D extends ElementDefinition>(description: D): ReturnClassType<D> {
-	class Base extends HTMLElement implements BaseClass {
+function customElementFabric<D extends ElementDescription>(description: D): ReturnClassType<D> {
+	class Base extends HTMLElement implements ICustomElement {
 		#id: string;
-		#config: ElementConfig = {} as ElementConfig;
-		#state: IDataContext;
-		#props: IDataContext;
+		#config: ElementDefinition = {} as ElementDefinition;
+		#state: IState;
+		#scope: IState;
+		#props: IState;
 		#propsManager: PropertyManager<D>;
-		#context: IDataContext;
-		#viewModule: ViewModule;
-		#elements: Record<string, BaseClass> = {};
-		#owner: View;
+		#context: IState;
+		#module: ViewModule;
+		#elements: Record<string, ICustomElement> = {};
+		#parent: ICustomElement;
+		#owner: IView;
 		#data: IDataAttribute | IDataAttributeIterable = {} as IDataAttribute;
   
 		#observables: Array<Observation> = [];
@@ -77,18 +67,19 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			return true;
 		}
   
-		constructor(...args: any[]) {
+		constructor({ owner, parent, config, context, stateDefinition, module }: CustomElementOptions) {
 			super();
-			const [owner, config, data, viewModule] = args;
+			this.#parent = parent || { config: {} } as ICustomElement;
 			this.#config = config;
 			this.#id = this.#config.id || genId();
-			this.#state = data.state || {};
+			this.#state = createState(this, stateDefinition);
+			this.#scope = this.#parent.config.scope === this.config.scope ? { ...this.#parent.scope, ...this.#parent.state } : {};
+			this.#context = context || {};
 			this.#props = {};
-			this.#context = data.context || {};
-			this.#viewModule = viewModule || {};
+			this.#module = module || {};
 			this.#owner = owner;
 
-			this.#propsManager = new PropertyManager(this, description, config.props || {}, data);
+			this.#propsManager = new PropertyManager(this, description, config.props || {});
 
 			for(let [propName, prop] of Object.entries(this.#propsManager)) {
 				Object.defineProperty(this, propName, { 
@@ -103,11 +94,12 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 
 			if(this.#config.data) {
 				if(typeof this.#config.data === 'object' && (this.#config.data as ElementPropertyDataSource).path) {
-					this.#data =  data.context[(this.#config.data as ElementPropertyDataSource).path] as IDataAttribute;
+					//@ts-ignore
+					this.#data =  this.#context[(this.#config.data as ElementPropertyDataSource).path] as IDataAttribute;
 				} else {
 					this.#data =  this.#config.data as IDataAttribute;
 				}
-				setObservation(this, this.#config.data!, data, () => {});
+				setObservation(this, this.#config.data!, this.#context);
 			}
   
 			this.#build();
@@ -127,26 +119,17 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 				callback 
 			});
 		}
-
-		public defineState(stateDefinition: StateDefinition, initData?: Record<string, any>): void {
-			this.#state = new State(this, stateDefinition, initData);
-		}
   
 		/**
 		 * Defines element configuration to be rendered
-		 * @returns {ElementConfig} - element configuration
+		 * @returns {ElementDefinition} - element configuration
 		 */
-		protected render(): ElementConfig {
+		protected render(): ElementDefinition {
 			return this.config;
 		}
   
 		#build(): void {
 			const template = this.render();
-
-			const data = {
-				context: this.#context || {},
-				state: this.#state || {}
-			};
       
 			this.setAttribute('id', this.#id);
 			template.alias && this.setAttribute('alias', template.alias as string); 
@@ -154,15 +137,11 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			if(template.className) {
 				const prop = template.className;
 				const setter = (value: DataAttributeValue) => this.setAttribute('class', value as string); 
-				setObservation(this as BaseClass, prop, data, setter);
+				setObservation(this as ICustomElement, prop, this.#context, setter);
 			}
 
-			// template.className && setObservation(this, template.className, data, (value: DataAttributeValue) => {
-			// 	this.setAttribute('class', `${value}`.trim()); 
-			// });
-  
 			Object.entries(template.attributes || {}).map(([name, prop]) => {
-				setObservation(this, prop!, data, (value: DataAttributeValue) => {
+				setObservation(this, prop!, this.#context, (value: DataAttributeValue) => {
 					if(value === true) {
 						this.setAttribute(name, ''); 
 					} else if(value === false) {
@@ -175,7 +154,7 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
   
 			Object.entries(template.props || {}).map(([name, prop]) => {
 
-				function setPropsObservation(prop: PropertyManager<any>, name: string, setter: DataAttributeEventHandler): void {
+				function setPropsObservation(prop: PropertyManager<any>, name: string, setter: DataAttributeSetter): void {
 					if(!(prop)) return;
 				
 					prop.addEventListener(name, (e: Event) => {
@@ -191,23 +170,22 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 				if((prop instanceof PropertyManager)) {
 					setPropsObservation(prop, name, setter);
 				} else {
-					setObservation(this, prop!, data, setter);
+					setObservation(this, prop!, this.#context, setter);
 				}
 			});
 
-			
-  
 			for(const styleName in template.style) {
 				const prop = template.style[styleName as StyleProperties];
-				setObservation(this, prop!, data, (value: DataAttributeValue) => {
+				setObservation(this, prop!, this.#context, (value: DataAttributeValue) => {
 					this.style[styleName as StyleProperties] = value as any;
+					// this.style.setProperty(styleName as StyleProperties, value as any)
 				});
 			}
   
 			Object.entries(template.events || {}).map(([name, event]) => {
-				this.addEventListener(name, (e: Event) => {
+				this.addEventListener(name, (e: Event | MouseEvent) => {
 					if(typeof event === 'string') {
-						const handler = this.#viewModule[event as keyof Base] as ElementEventHandler;
+						const handler = this.#module[event as keyof Base] as ElementEventHandler;
 						if(handler) {
 							handler.call(this.#owner, e);
 						} else {
@@ -231,31 +209,26 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 							continue;
 						}
 						if(childConfig.type === 'slot') continue;
-						const child = buildElement(this, childConfig, data, this.#viewModule);
+						const child = buildElement({ parent: this, config: childConfig, context: this.#context, module: this.#module });
 						this.appendChild(child);
 						if(childConfig.alias) {
-							this.#elements[childConfig.alias] = child as BaseClass;
+							this.#elements[childConfig.alias] = child as ICustomElement;
 						}
 					}
 				}
 			}
 		}
 
-		public addElements(elements: ChildElemetConfig[]): void {
-			const data = {
-				context: this.#context || {},
-				state: this.#state || {}
-			};
-
+		public addElements(elements: ChildElementDefinition[]): void {
 			if(!Array.isArray(elements)) {
 				elements = [elements];
 			}
 
 			for(const elementConfig of elements) {
-				const element = buildElement(this, elementConfig, data, this.#viewModule);
+				const element = buildElement({ parent: this, config: elementConfig, module: this.#module });
 				this.appendChild(element);
 				if(elementConfig.alias) {
-					this.#elements[elementConfig.alias] = element as BaseClass;
+					this.#elements[elementConfig.alias] = element as ICustomElement;
 				}
 			}
 		}
@@ -278,28 +251,36 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 			}
 		}
   
-		public get config(): ElementConfig {
+		public get config(): ElementDefinition {
 			return this.#config;
 		} 
   
-		public get props(): CustomElementProps<any> {
-			return this.#propsManager;
+		public get props(): CustomElementProps<D> {
+			return this.#propsManager as CustomElementProps<D>;
 		}  
   
-		public get state(): ContextState {
+		public get state(): IState {
 			return this.#state;
+		} 
+
+		public get scope(): IState {
+			return this.#scope;
 		}  
   
-		public get elements(): Record<string, BaseClass> {
+		public get elements(): Record<string, ICustomElement> {
 			return this.#elements;
 		} 
   
-		public get context(): ContextState {
+		public get context(): IState {
 			return this.#context;
 		} 
 
 		public get owner() {
 			return this.#owner;
+		}
+
+		public set owner(value: any) {
+			this.#owner = value;
 		}
 
 		public get data() {
@@ -310,8 +291,8 @@ function customElementFabric<D extends ElementDefinition>(description: D): Retur
 	return Base as ReturnClassType<D>;
 }
 
-export type ReturnClassType<D extends ElementDefinition> = Construtable<BaseClass> & ConstrutableB<CustomElement<D>>
+export type ReturnClassType<D extends ElementDescription> = Constructable<ICustomElement> & ConstructableCustomElement<CustomElement<D>>
 
 export const customElement = customElementFabric as (
-  <D extends ElementDefinition>(definition: D) => ReturnClassType<D>
+  <D extends ElementDescription>(definition: D) => ReturnClassType<D>
 );

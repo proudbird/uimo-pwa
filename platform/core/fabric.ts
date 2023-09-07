@@ -1,42 +1,48 @@
-import { BaseClass } from '../ui/core/base';
-import { ChildElemetConfig, DataAttributeEventHandler, DataAttributeValue, ElementEventHandler, ElementProp, StyleProperties, ViewModule } from '../types';
 
-type CustomElementData = {
-	context: IDataContext;
-	state: IDataContext;
-};
+import { 
+	ChildElementDefinition,
+	CustomElementOptions,
+	DataAttributeSetter,
+	DataAttributeValue, 
+	ElementEventHandler, 
+	ElementProp, 
+	ElementPropertyDataSource, 
+	ElementPropertyHandler, 
+	ICustomElement, 
+	IDataAttribute, 
+	IState, 
+	StyleProperties, 
+	ViewModule 
+} from '@/types';
 
-export function setObservation(element: BaseClass, prop: ElementProp, data: CustomElementData, setter: DataAttributeEventHandler): void {
+export function setObservation(element: ICustomElement, prop: ElementProp, data: IState, setter?: DataAttributeSetter): void {
 	if(!(prop)) return;
 
 	if(typeof prop === 'string') {
-		setter(prop);
+		setter && setter(prop);
 	} else if((prop as IDataAttribute).DataAttribute) {
-		setter((prop as IDataAttribute).value);
-		element.observe((prop as IDataAttribute), () => setter((prop as IDataAttribute).value));
+		setter && setter((prop as IDataAttribute).value);
+		element.observe((prop as IDataAttribute), () => setter && setter((prop as IDataAttribute).value));
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
-		setter((prop as ElementPropertyHandler).handler!(data.context));
+		setter && setter((prop as ElementPropertyHandler).handler!(data));
 		if((prop as ElementPropertyHandler).dependencies?.length) {
 			for(const dep of (prop as ElementPropertyHandler).dependencies!) {
-				element.observe(dep, () => setter((prop as ElementPropertyHandler).handler!(data.context)));
+				element.observe(dep, () => setter && setter((prop as ElementPropertyHandler).handler!(data)));
 			}
 		} else {
-			element.addEventListener('change', () => setter((prop as ElementPropertyHandler).handler!(data.context)));
-			// element.addEventListener('input', () => setter((prop as ElementPropertyHandler).handler!(data.context)));
+			element.addEventListener('change', () => setter && setter((prop as ElementPropertyHandler).handler!(data)));
+			// element.addEventListener('input', () => setter((prop as ElementPropertyHandler).handler!(data.parent.state)));
 		}
 	}  else if(typeof prop === 'object' && (prop as ElementPropertyDataSource).path) {
 		prop = prop as ElementPropertyDataSource;
-		let dataProvider = data.context;
-		if(prop.path.startsWith('$')) {
-			dataProvider = data.state;
-		}
+		let dataProvider = data;
 		const attr = dataProvider[prop.path] as IDataAttribute;
-		setter(attr.value);
-		element.observe(attr, () => setter(attr.value));
+		setter && setter(attr.value);
+		element.observe(attr, () => setter && setter(attr.value));
 	}
 }
 
-export function getPropValue(prop: ElementProp, state: IDataContext): DataAttributeValue {
+export function getPropValue(prop: ElementProp, state: IState): DataAttributeValue {
 	if(!(prop || state)) return;
 
 	if(typeof prop === 'string') {
@@ -48,12 +54,12 @@ export function getPropValue(prop: ElementProp, state: IDataContext): DataAttrib
 	}
 }
 
-export function createElement(parent: BaseClass, config: ChildElemetConfig, data: CustomElementData, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
+export function createElement({ parent, config, context, module }: BuildElementOptions): ICustomElement | HTMLElement | SVGSVGElement {
 	// first trying to create custom element
 	if(config.type !== 'native') {
 		const Constructor = customElements.get(/(\@|ui\-)/.test(config.tagName) ? config.tagName.replace('@', 'uimo-').replace('ui-', 'uimo-') : `uimo-${config.tagName}`);
 		if(Constructor) {
-			return new Constructor(parent.owner, config, data, viewModule) as BaseClass;
+			return new Constructor({ owner: parent.owner, parent, config, context, module } as CustomElementOptions) as ICustomElement;
 		}
 	}
 
@@ -65,10 +71,16 @@ export function createElement(parent: BaseClass, config: ChildElemetConfig, data
 	}
 }
 
-export function buildElement(parent: BaseClass, config: ChildElemetConfig, data: CustomElementData, viewModule: ViewModule): BaseClass | HTMLElement | SVGSVGElement {
-  
-	const element = createElement(parent, config, data, viewModule);
-	if((element as BaseClass).isCustom) {
+export type BuildElementOptions = {
+	parent: ICustomElement;
+	config: ChildElementDefinition;
+	context?: IState;
+	module?: ViewModule;
+};
+
+export function buildElement({ parent, config, context, module }: BuildElementOptions): ICustomElement | HTMLElement | SVGSVGElement {
+	const element = createElement({ parent, config, context, module });
+	if((element as ICustomElement).isCustom) {
 		return element;
 	}
 
@@ -77,10 +89,10 @@ export function buildElement(parent: BaseClass, config: ChildElemetConfig, data:
 	if(config.className) {
 		const prop = config.className;
 		const setter = (value: DataAttributeValue) => element.setAttribute('class', value as string); 
-		if((element as BaseClass).isCustom) {
-			setObservation(element as BaseClass, prop, data, setter);
+		if((element as ICustomElement).isCustom) {
+			setObservation(element as ICustomElement, prop, parent.state, setter);
 		} else {
-			setObservation(parent, prop, data, setter);
+			setObservation(parent, prop, parent.state, setter);
 		}
 	}
 
@@ -88,10 +100,10 @@ export function buildElement(parent: BaseClass, config: ChildElemetConfig, data:
 		const setter = (value: DataAttributeValue) => {
 			element.setAttribute(name, value as string); 
 		};
-		if((element as BaseClass).isCustom) {
-			setObservation(element as BaseClass, prop!, data, setter);
+		if((element as ICustomElement).isCustom) {
+			setObservation(element as ICustomElement, prop!, parent.state, setter);
 		} else {
-			setObservation(parent, prop!, data, setter);
+			setObservation(parent, prop!, parent.state, setter);
 		}
 	});
 
@@ -100,31 +112,34 @@ export function buildElement(parent: BaseClass, config: ChildElemetConfig, data:
 			//@ts-ignore
 			element[name] = value; 
 		};
-		if((element as BaseClass).isCustom) {
-			setObservation(element as BaseClass, prop!, data, setter);
+		if((element as ICustomElement).isCustom) {
+			setObservation(element as ICustomElement, prop!, parent.state, setter);
 			// Object.defineProperty(element as CustomElement, name, {
 			//   get: () => getPropValue(prop, state),
 			//   set: (newProp) => setObservation(element as CustomElement, newProp, state, () => {})
 			// });
 		} else {
-			setObservation(parent, prop!, data, setter);
+			setObservation(parent, prop!, parent.state, setter);
 		}
 	});
 
 	for(const styleName in config.style) {
 		const prop = config.style[styleName as StyleProperties];
 		const setter = (value: DataAttributeValue) => element.style[styleName as StyleProperties] = value as any; 
-		if((element as BaseClass).isCustom) {
-			setObservation(element as BaseClass, prop!, data, setter);
+		if((element as ICustomElement).isCustom) {
+			setObservation(element as ICustomElement, prop!, parent.state, setter);
 		} else {
-			setObservation(parent, prop!, data, setter);
+			setObservation(parent, prop!, parent.state, setter);
 		}
 	}
 
 	Object.entries(config.events || {}).map(([name, event]) => {
 		element.addEventListener(name, (e: Event) => {
 			if(typeof event === 'string') {
-				const handler = viewModule[event as keyof BaseClass] as ElementEventHandler;
+				if(!module) {
+					throw new Error(`Can't get handler '${event}' for element '${config.tagName}': View module is not defined`);
+				}
+				const handler = module[event as keyof ICustomElement] as ElementEventHandler;
 				if(handler) {
 					handler.call(parent.owner, e);
 				} else {
@@ -150,7 +165,7 @@ export function buildElement(parent: BaseClass, config: ChildElemetConfig, data:
 					continue;
 				}
 				if(childConfig.type === 'slot') continue;
-				const child = buildElement(parent, childConfig, data, viewModule);
+				const child = buildElement({ parent, config: childConfig, module });
 				element.appendChild(child);
 			}
 		}

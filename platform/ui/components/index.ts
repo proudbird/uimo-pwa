@@ -8,7 +8,6 @@ export { default as NumberInput } from './basic/numberInput';
 export { default as FieldLabel } from './basic/fieldLabel';
 export { default as TextField } from './basic/textField';
 export { default as NumberField } from './basic/numberField';
-export { default as DynamicList } from './complex/dynamic-list';
 export { default as Table } from './complex/table';
 export { default as TableHeader } from './complex/table-header';
 export { default as TableHeaderCell } from './complex/table-header-cell';

@@ -1,13 +1,13 @@
 
 import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementConfig } from '@/types';
+import { ElementDefinition, IDataAttribute } from '@/types';
 import description from './textInput.desc';
 
 const tagName = 'textinput';
 
 @DefineElement(tagName)
 export default class TextInput extends customElement(description) {
-	render(): ElementConfig {
+	render(): ElementDefinition {
 		return {
 			...this.config,
 			className: {
@@ -22,8 +22,20 @@ export default class TextInput extends customElement(description) {
 				},
 				events: {
 					input: (e: Event) => {
-						this.data.value = (e.target as HTMLInputElement)!.value;
-						this.config.events?.input?.(e);
+						(this.data as IDataAttribute).value = (e.target as HTMLInputElement)!.value;
+						const handler = this.config.events?.input;
+						if(handler) {
+							if(typeof handler === 'string') {
+								const moduleHandler = (this.owner as any)[handler];
+								if(moduleHandler) {
+									moduleHandler(e);
+								} else {
+									throw new Error(`Handler ${handler} not found in module`);
+								};
+							} else {
+								handler(e);
+							}
+						}
 					}
 				}
 			}]

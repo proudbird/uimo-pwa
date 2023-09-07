@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { customElement, DefineElement } from '@/ui/core/base';
 import description from './view.desc';
 

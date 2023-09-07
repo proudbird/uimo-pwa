@@ -1,12 +1,12 @@
 import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementConfig } from '@/types';
+import { ElementDefinition } from '@/types';
 import description from './fieldLabel.desc';
 
 const tagName = 'fieldlabel';
 
 @DefineElement(tagName)
 export default class FieldLabel extends customElement(description) {
-	render(): ElementConfig {
+	render(): ElementDefinition {
 		return {
 			...this.config, 
 			className: {

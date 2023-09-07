@@ -1,5 +1,4 @@
-//@ts-nocheck
-import { CustomElement, ElementConfig, ViewModule } from '@/types';
+import { ElementDefinition, GetViewModuleHandler, ICustomElement, IState, IView, StateDefinition, ViewModule } from '@/types';
 import ViewElement from '@/ui/components/basic/view';
 import Context from '@/core/data/context';
 
@@ -8,21 +7,21 @@ export type ViewParams = {
   data: Record<string, any>;
 }
 
-export default class View {
-	#context: IDataContext;
+export default class View implements IView {
+	#state: IState;
 	#module: ViewModule;
-	#node: HTMLElement;
+	#node: ICustomElement;
 
-	constructor(config: ElementConfig, contextDefinition: DataDefinition, getModule: ViewModule, params?: ViewParams) {
+	constructor(config: ElementDefinition, contextDefinition: StateDefinition, getModule: GetViewModuleHandler, params?: ViewParams) {
 		this.#module = getModule(this);
-		this.#context = new Context(contextDefinition, params?.data);
-		this.#node = new ViewElement(this, config, { context: this.#context, state: {} }, this.#module);
+		this.#state = new Context(contextDefinition, params?.data);
+		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
 
-		for(const attrName of Object.getOwnPropertyNames(this.#context)) {
+		for(const attrName of Object.getOwnPropertyNames(this.#state)) {
 			Object.defineProperty(this, attrName, {
-				get: () => this.#context[attrName].value,
+				get: () => this.#state[attrName].value,
 				set: (value: any) => {
-					this.#context[attrName].value = value},
+					this.#state[attrName].value = value},
 			});
 		}
 
@@ -30,11 +29,15 @@ export default class View {
 	}
 
 	get elements() {
-		return (this.#node as Partial<CustomElement>).elements;
+		return (this.#node).elements;
 	}
 
-	get node(): HTMLElement {
+	get node(): ICustomElement {
 		return this.#node;
+	}
+
+	get state(): IState {
+		return this.#state;
 	}
 
 	showView(view: View) {

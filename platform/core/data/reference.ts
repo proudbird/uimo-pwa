@@ -1,5 +1,6 @@
 import DataAttribute from "./dataAttribute";
 import { DataAttributeChangeEvent } from "./events";
+import { IDataAttribute } from "@/types";
 
 export interface Reference  {
 	id: string;

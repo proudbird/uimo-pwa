@@ -1,29 +1,33 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { ValueError } from "./errors";
-import { ElementDefinition } from "../../types";
-import { BaseClass, CustomElementData } from "../../ui/core/base";
+import { 
+	CustomElementProps,
+	ElementDescription, 
+	ElementPropertyDataSource, 
+	ElementPropertyHandler, 
+	ElementProps, 
+	ICustomElement, 
+	IDataAttribute 
+} from "@/types";
 
-export default class PropertyManager<D extends ElementDefinition> extends EventTarget {
+export default class PropertyManager<D extends ElementDescription> extends EventTarget implements CustomElementProps<any> {
 	#values: Record<string, any>;
 
-	constructor(element: BaseClass, description: D, props: ElementProp, data: CustomElementData) {
+	constructor(element: ICustomElement, description: D, inputProps: ElementProps) {
 		super();
 		this.#values = {};
 
 		Object.entries(description.props || {}).map(([propName, prop]) => {
-			let defaultValue = prop.defaultValue;
-			let definedProp = props[propName as keyof ElementProp];
+			let defaultValue = prop?.defaultValue;
+			let definedProp = inputProps[propName as keyof ElementProps];
 			if(definedProp) {
 				if(typeof definedProp === 'string') {
 					defaultValue = definedProp;
 				} else if((definedProp as IDataAttribute).DataAttribute) {
 					defaultValue = (definedProp as IDataAttribute).value;
 				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyHandler).handler) {
-					defaultValue = (definedProp as ElementPropertyHandler).handler!.apply(element, [data.context]);
-				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyDataSource).dataPath) {
-					let dataProvider = data.context;
-					const attr = dataProvider[(definedProp as ElementPropertyDataSource).dataPath] as IDataAttribute;
+					defaultValue = (definedProp as ElementPropertyHandler).handler!.apply(element, [element.context]);
+				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyDataSource).path) {
+					let dataProvider = element.context;
+					const attr = dataProvider[(definedProp as ElementPropertyDataSource).path] as IDataAttribute;
 					defaultValue = attr.value;
 				}
 			}
