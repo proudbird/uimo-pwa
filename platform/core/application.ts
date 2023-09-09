@@ -1,5 +1,5 @@
-import View, { ViewParams } from "../ui/core/view";
-import loadModule from "./loadModule";
+import View from '../ui/core/view';
+import loadModule from './loadModule';
 
 export default class Application {
   #id: string;
@@ -44,7 +44,7 @@ export default class Application {
     return this.#viewFrame || this.#appFrame!;
   }
 
-  async showView(viewId: string, params?: ViewParams) {
+  async showView(viewId: string, params?: any) {
     await loadModule(`view/${viewId}`);
 
     const viewDefinition = window.views[viewId];

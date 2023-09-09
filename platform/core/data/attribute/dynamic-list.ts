@@ -1,8 +1,8 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { IDataAttribute } from "../../types";
-import DataAttributeConstructors from './constructors';
-import ReferenceAttribute from "./reference";
+import { StateDefinition } from '@/types';
+import { IStateManager, StateManager } from '../state';
+
+import DataAttributeBase from './dataAttribute';
+import { DataAttributeChangeEvent } from '../events';
 
 export interface DynamicListAttributeOptions {
 	cube: string;
@@ -20,7 +20,7 @@ export type DataProviderAttribute = {
 	}
 };
 
-export default class DynamicListAttribute extends DataAttribute implements IDataAttribute {
+export default class DynamicListAttribute extends DataAttributeBase {
 	#cube: string;
 	#className: string;
 	#object: string;
@@ -70,44 +70,35 @@ export default class DynamicListAttribute extends DataAttribute implements IData
     let done = false;
 
     let next = () => {
-			const value: any = {};
+			const definition: StateDefinition = {};
        if(count >= this.#provider.entries.length) {
           done = true;
        } else {
 				 	const entry = this.#provider.entries[count++];
 					for(let [attrName, attr] of Object.entries<DataProviderAttribute>(this.#provider.attributes)) {
 						const record = entry[attr.index];
-						let attrTypy = attr.type.dataType;
-						if(attrTypy === 'FK') {
-							attrTypy = 'Reference';
-						}
-						const dataAttributeConstructor = DataAttributeConstructors[attrTypy as keyof typeof DataAttributeConstructors];
-						if(dataAttributeConstructor) {
-							let dataAttribute: DataAttribute;
-							if(attrTypy === 'Reference') {
-								const ref = {
-									id: record[0],
-									model: record[1],
-									presentation: record[2],
-								};
-								dataAttribute = new (dataAttributeConstructor as typeof ReferenceAttribute)({ initValue: ref });
-							} else {
-								dataAttribute = new dataAttributeConstructor(record);
-							}
-							value[attrName] = dataAttribute;
-						} else {
-							throw new Error(`Data attribute constructor for type ${attrTypy} not found`);
-						}
-					}
-			 }
+						let initValue = record;
+						let attrType = attr.type.dataType;
 
-       return { done, value };
+						if(attrType === 'FK') {
+							attrType = 'Reference';
+						}
+
+						if(attrType === 'Reference') {
+							initValue = {
+								id: record[0],
+								model: record[1],
+								presentation: record[2],
+							};
+						}
+
+						definition[attrName] = { type: attrType, initValue };
+					}
+				}
+
+       return { done, value: (new StateManager(definition)) as IStateManager};
     }
 
     return { next };
   }
-
-	get value() {
-		return this.#provider;
-	}
 }

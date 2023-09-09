@@ -1,20 +1,28 @@
-import { ElementDefinition, GetViewModuleHandler, ICustomElement, IState, IView, StateDefinition, ViewModule } from '@/types';
+import { 
+	ElementDefinition, 
+	GetViewModuleHandler, 
+	ICustomElement, 
+	IView, 
+	StateDefinition, 
+	ViewModule
+} from '@/types';
+
+import { IState, IStateManager, StateManager } from '@/core/data/state';
+
 import ViewElement from '@/ui/components/basic/view';
-import Context from '@/core/data/context';
 
-
-export type ViewParams = {
+type ViewParams = {
   data: Record<string, any>;
 }
 
 export default class View implements IView {
-	#state: IState;
+	#state: IStateManager;
 	#module: ViewModule;
 	#node: ICustomElement;
 
 	constructor(config: ElementDefinition, contextDefinition: StateDefinition, getModule: GetViewModuleHandler, params?: ViewParams) {
 		this.#module = getModule(this);
-		this.#state = new Context(contextDefinition, params?.data);
+		this.#state = new StateManager(contextDefinition);
 		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
 
 		for(const attrName of Object.getOwnPropertyNames(this.#state)) {
@@ -37,7 +45,7 @@ export default class View implements IView {
 	}
 
 	get state(): IState {
-		return this.#state;
+		return this.#state.getData();
 	}
 
 	showView(view: View) {

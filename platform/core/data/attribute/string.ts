@@ -1,12 +1,12 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { ValueError } from "./errors";
-import { IDataAttribute, StringAttributeOptions } from "@/types";
+import DataAttributeBase from './dataAttribute';
+import { DataAttributeChangeEvent } from '../events';
+import { ValueError } from '../errors';
+import { StringAttributeOptions } from '@/types';
 
 /**
  * Manages a string value and notifies consumers about any changes to that value
  */
-export default class StringAttribute extends DataAttribute implements IDataAttribute {
+export default class StringAttribute extends DataAttributeBase {
 	#value: string;
 	#prevValue: string;
 

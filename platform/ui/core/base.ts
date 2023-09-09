@@ -1,6 +1,7 @@
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
+
 import { 
 	ChildElementDefinition,
 	Constructable, 
@@ -15,19 +16,23 @@ import {
 	ElementEventHandler, 
 	ElementPropertyDataSource, 
 	ICustomElement, 
-	IDataAttribute, 
-	IDataAttributeIterable, 
-	IState, 
 	IView, 
-	StateDefinition, 
 	StyleProperties, 
 	ViewModule 
 } from '@/types';
-import PropertyManager from '../../core/data/manager';
-import { createState } from '../../state/state';
+
+import { 
+	DataAttribute, 
+	IDataAttributeCollection,
+	IState, 
+	IStateManager, 
+	StateManager
+} from '@/core/data/state';
+
+import PropertyManager from '@/core/data/manager';
 
 type Observation = {
-  observable: IDataAttribute,
+  observable: DataAttribute,
   callback: EventListenerOrEventListenerObject
 }
 
@@ -50,16 +55,16 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 	class Base extends HTMLElement implements ICustomElement {
 		#id: string;
 		#config: ElementDefinition = {} as ElementDefinition;
-		#state: IState;
-		#scope: IState;
+		#context: IStateManager;
+		#state: IStateManager;
+		#scope: IStateManager;
 		#props: IState;
 		#propsManager: PropertyManager<D>;
-		#context: IState;
 		#module: ViewModule;
 		#elements: Record<string, ICustomElement> = {};
 		#parent: ICustomElement;
 		#owner: IView;
-		#data: IDataAttribute | IDataAttributeIterable = {} as IDataAttribute;
+		#data: DataAttribute | IDataAttributeCollection = {} as DataAttribute;
   
 		#observables: Array<Observation> = [];
   
@@ -72,10 +77,10 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 			this.#parent = parent || { config: {} } as ICustomElement;
 			this.#config = config;
 			this.#id = this.#config.id || genId();
-			this.#state = createState(this, stateDefinition);
-			this.#scope = this.#parent.config.scope === this.config.scope ? { ...this.#parent.scope, ...this.#parent.state } : {};
-			this.#context = context || {};
-			this.#props = {};
+			this.#state = new StateManager(stateDefinition);
+			this.#scope = this.#parent.config.scope === this.config.scope ? (new StateManager()).merge([this.#parent.$scope, this.#parent.$state]) : new StateManager();
+			this.#context = context || new StateManager();
+			this.#props = {} as IState;
 			this.#module = module || {};
 			this.#owner = owner;
 
@@ -95,9 +100,9 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 			if(this.#config.data) {
 				if(typeof this.#config.data === 'object' && (this.#config.data as ElementPropertyDataSource).path) {
 					//@ts-ignore
-					this.#data =  this.#context[(this.#config.data as ElementPropertyDataSource).path] as IDataAttribute;
+					this.#data =  this.#context[(this.#config.data as ElementPropertyDataSource).path] as DataAttribute;
 				} else {
-					this.#data =  this.#config.data as IDataAttribute;
+					this.#data =  this.#config.data as DataAttribute;
 				}
 				setObservation(this, this.#config.data!, this.#context);
 			}
@@ -112,7 +117,7 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 			this.#observables = [];
 		}
   
-		public observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void {
+		public observe(observable: DataAttribute, callback: EventListenerOrEventListenerObject): void {
 			observable.addEventListener('change', callback);
 			this.#observables.push({
 				observable,
@@ -260,10 +265,18 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 		}  
   
 		public get state(): IState {
+			return this.#state.getData();
+		} 
+  
+		public get $state(): IStateManager {
 			return this.#state;
 		} 
 
 		public get scope(): IState {
+			return this.#scope.getData();
+		}  
+
+		public get $scope(): IStateManager {
 			return this.#scope;
 		}  
   
@@ -272,7 +285,7 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 		} 
   
 		public get context(): IState {
-			return this.#context;
+			return this.#context.getData();
 		} 
 
 		public get owner() {

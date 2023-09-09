@@ -162,7 +162,7 @@ function extendCustomElement<T extends {new (...args: any[]): HTMLElement}, D ex
 			this._observables = [];
 		}
   
-		public observe(observable: IDataAttribute, callback: EventListenerOrEventListenerObject): void {
+		public observe(observable: DataAttribute, callback: EventListenerOrEventListenerObject): void {
 			observable.addEventListener('change', callback);
 			this._observables.push({
 				observable,

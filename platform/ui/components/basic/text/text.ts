@@ -1,5 +1,6 @@
 import { customElement, DefineElement } from '@/ui/core/base';
 import { ElementDefinition } from '@/types';
+
 import description from './text.desc';
 
 const tagName = 'text';

@@ -1,12 +1,12 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { ValueError } from "./errors";
-import { IDataAttribute, NumberAttributeOptions } from "@/types";
+import DataAttributeBase from './dataAttribute';
+import { DataAttributeChangeEvent } from '../events';
+import { ValueError } from '../errors';
+import { NumberAttributeOptions } from '@/types';
 
 /**
  * Manages a number value and notifies consumers about any changes to that value
  */
-export default class NumberAttribute extends DataAttribute implements IDataAttribute {
+export default class NumberAttribute extends DataAttributeBase {
 	#value: number;
 	#prevValue: number;
 

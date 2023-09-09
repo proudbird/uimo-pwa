@@ -1,6 +1,5 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { IDataAttribute } from "@/types";
+import DataAttributeBase from './dataAttribute';
+import { DataAttributeChangeEvent } from '../events';
 
 export interface Reference  {
 	id: string;
@@ -12,7 +11,7 @@ export type ReferenceAttributeOptions = {
   readonly initValue?: Reference | null;
 };
 
-export default class ReferenceAttribute extends DataAttribute implements IDataAttribute {
+export default class ReferenceAttribute extends DataAttributeBase {
 	#value: Reference | null;
 	#prevValue: Reference | null;
 

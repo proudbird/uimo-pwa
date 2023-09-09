@@ -1,6 +1,6 @@
 
 import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementDefinition, IDataAttribute } from '@/types';
+import { ElementDefinition, DataAttribute } from '@/types';
 import description from './textInput.desc';
 
 const tagName = 'textinput';
@@ -22,7 +22,7 @@ export default class TextInput extends customElement(description) {
 				},
 				events: {
 					input: (e: Event) => {
-						(this.data as IDataAttribute).value = (e.target as HTMLInputElement)!.value;
+						(this.data as DataAttribute).value = (e.target as HTMLInputElement)!.value;
 						const handler = this.config.events?.input;
 						if(handler) {
 							if(typeof handler === 'string') {

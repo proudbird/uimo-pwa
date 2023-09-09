@@ -1,6 +1,6 @@
 
 import { customElement, DefineElement } from '@/ui/core/base';
-import { type CustomElementOptions, ElementDefinition, IDataAttribute } from '@/types';
+import { type CustomElementOptions, ElementDefinition, DataAttribute } from '@/types';
 import description from './numberInput.desc';
 
 const tagName = 'numberinput';
@@ -44,8 +44,8 @@ export default class NumberInput extends customElement(description) {
 							this.state.inputValue.value = value;
 							return;
 						}
-						(this.data as IDataAttribute).value = (e.target as HTMLInputElement)!.value;
-						this.state.inputValue.value = (this.data as IDataAttribute).value;
+						(this.data as DataAttribute).value = (e.target as HTMLInputElement)!.value;
+						this.state.inputValue.value = (this.data as DataAttribute).value;
 						const handler = this.config.events?.input;
 						if(handler) {
 							if(typeof handler === 'string') {

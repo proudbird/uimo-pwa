@@ -1,3 +1,5 @@
+import { DataAttribute, IDataAttributeCollection, IState, IStateManager } from "./core/data/state";
+
 export enum AttributeType {
   STRING = 'string',
   NUMBER = 'number',
@@ -24,18 +26,6 @@ export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never;
 
 export type StateValueType = 'string' | 'number' | 'boolean' | 'date';
 
-export interface IDataAttributeBase  {
-  readonly DataAttribute: true;
-}
-
-export interface IDataAttribute extends EventTarget, IDataAttributeBase {
-  value: any;
-}
-
-export interface IDataAttributeIterable extends EventTarget, IDataAttributeBase {
-  [Symbol.iterator](): IterableIterator<IState>;
-}
-
 export type StringAttributeOptions = {
   initValue?: string;
   readonly maxLength?: number;
@@ -52,6 +42,12 @@ export type NumberAttributeOptions = {
 
 export type BooleanAttributeOptions = {
   initValue?: boolean;
+};
+
+export type ReferenceAttributeValue = [string, string, string];
+
+export type ReferenceAttributeOptions = {
+  initValue?: ReferenceAttributeValue;
 };
 
 export type DateAttributeOptions = {
@@ -77,14 +73,16 @@ export enum DateAttributeFormat {
 export type DataAttributeOptions = StringAttributeOptions | NumberAttributeOptions | BooleanAttributeOptions | DateAttributeOptions;
 
 export type DataDefinition = Record<string, { type: AttributeType } & DataAttributeOptions>;
+
 export type StateDefinition = Record<string, { 
-  type: StateValueType, 
-  defaultValue: any, 
+  type: string, 
+  defaultValue?: any, // TODO: remove this
+  initValue?: any, // TODO: change to proper type 
   link?: any 
-} & DataAttributeOptions>;
+}>;// & DataAttributeOptions>;
 
 export interface IDataContext {
-  readonly [name: string]: IDataAttribute;
+  readonly [name: string]: DataAttribute;
 }
 
 export type ElementPropertyDataSource = {
@@ -92,14 +90,14 @@ export type ElementPropertyDataSource = {
   source?: string;
 };
 
-export type EventHandler = (state: IDataContext) => any;
+export type EventHandler = (state: IState) => any;
 
 export type ElementPropertyHandler = {
   handler?: EventHandler;
-  dependencies?: Array<IDataAttribute | IDataAttributeIterable>;
+  dependencies?: Array<DataAttribute | IDataAttributeCollection>;
 };
 
-export type ElementProp = string | number | boolean | IDataAttribute | IDataAttributeIterable | ElementPropertyHandler | ElementPropertyDataSource;
+export type ElementProp = string | number | boolean | DataAttribute | IDataAttributeCollection | ElementPropertyHandler | ElementPropertyDataSource;
 
 // Template definition
 export interface ElementDescription {
@@ -167,18 +165,16 @@ export type TypesMap = {
   'date': Date;
 };
 
-export interface IState {
-  [key: string]: IDataAttribute;
-}
+
 
 export type DataSourceEventHandler = () => StateValueType;
 
 export type ElementVarHandler = {
   handler?: () => string;
-  dependencies?: Array<IDataAttribute>;
+  dependencies?: Array<DataAttribute>;
 };
 
-export type ElementVar = string | IDataAttribute | ElementVarHandler;
+export type ElementVar = string | DataAttribute | ElementVarHandler;
 
 export type ElementVars = {
   [prop: string]: ElementVar | undefined;
@@ -218,7 +214,7 @@ export type ElementDefinition = {
   style?: Partial<StyleDefinition>;
   events?: Record<string, ConfigEventHandler>;
   children?: string | Array<ChildElementDefinition>;
-  data?: IDataAttribute | IDataAttributeIterable | ElementPropertyDataSource;
+  data?: DataAttribute | IDataAttributeCollection | ElementPropertyDataSource;
 };
 
 export type ElementPropPrimitiveType = 'string' | 'number' | 'boolean' | 'date';
@@ -238,7 +234,7 @@ export type CustomElementProps<T extends ElementDescription> = { -readonly [K in
 
 export type CustomElement<T extends ElementDescription> = CustomElementProps<T> & {
   props: CustomElementProps<T>;
-  data: IDataAttribute | IDataAttributeIterable;
+  data: DataAttribute | IDataAttributeCollection;
 }
 
 export type DataAttributeSetter = (value: any) => void;
@@ -249,12 +245,14 @@ export interface ICustomElement extends HTMLElement {
   isCustom: true;
   config: ElementDefinition;
   state: IState;
+  $state: IStateManager;
   scope: IState;
+  $scope: IStateManager;
   props: CustomElementProps<any>;
   context: IState;
   elements: Record<string, ICustomElement>;
   owner: IView;
-  observe(observable: IDataAttribute | IDataAttributeIterable, callback: EventListenerOrEventListenerObject): void;
+  observe(observable: DataAttribute | IDataAttributeCollection, callback: EventListenerOrEventListenerObject): void;
 }
 
 export interface IView {
@@ -279,7 +277,7 @@ export type CustomElementOptions = {
 	owner: IView;
 	parent: ICustomElement;
 	config: ElementDefinition;
-	context?: IDataContext;
+	context?: IStateManager;
 	stateDefinition?: StateDefinition;
 	module?: ViewModule;
 }

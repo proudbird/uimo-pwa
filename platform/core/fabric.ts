@@ -9,34 +9,34 @@ import {
 	ElementPropertyDataSource, 
 	ElementPropertyHandler, 
 	ICustomElement, 
-	IDataAttribute, 
-	IState, 
 	StyleProperties, 
 	ViewModule 
 } from '@/types';
 
-export function setObservation(element: ICustomElement, prop: ElementProp, data: IState, setter?: DataAttributeSetter): void {
+import { DataAttribute, IState, IStateManager } from './data/state';
+
+export function setObservation(element: ICustomElement, prop: ElementProp, data: IStateManager, setter?: DataAttributeSetter): void {
 	if(!(prop)) return;
 
-	if(typeof prop === 'string') {
+	if(typeof prop === 'string') { // if number. boolean, date???
 		setter && setter(prop);
-	} else if((prop as IDataAttribute).DataAttribute) {
-		setter && setter((prop as IDataAttribute).value);
-		element.observe((prop as IDataAttribute), () => setter && setter((prop as IDataAttribute).value));
+	} else if((prop as DataAttribute).DataAttribute) {
+		setter && setter((prop as DataAttribute).value);
+		element.observe((prop as DataAttribute), () => setter && setter((prop as DataAttribute).value));
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
-		setter && setter((prop as ElementPropertyHandler).handler!(data));
+		setter && setter((prop as ElementPropertyHandler).handler!(data.getData()));
 		if((prop as ElementPropertyHandler).dependencies?.length) {
 			for(const dep of (prop as ElementPropertyHandler).dependencies!) {
-				element.observe(dep, () => setter && setter((prop as ElementPropertyHandler).handler!(data)));
+				element.observe(dep, () => setter && setter((prop as ElementPropertyHandler).handler!(data.getData())));
 			}
 		} else {
-			element.addEventListener('change', () => setter && setter((prop as ElementPropertyHandler).handler!(data)));
+			element.addEventListener('change', () => setter && setter((prop as ElementPropertyHandler).handler!(data.getData())));
 			// element.addEventListener('input', () => setter((prop as ElementPropertyHandler).handler!(data.parent.state)));
 		}
 	}  else if(typeof prop === 'object' && (prop as ElementPropertyDataSource).path) {
 		prop = prop as ElementPropertyDataSource;
 		let dataProvider = data;
-		const attr = dataProvider[prop.path] as IDataAttribute;
+		const attr = dataProvider[prop.path] as DataAttribute;
 		setter && setter(attr.value);
 		element.observe(attr, () => setter && setter(attr.value));
 	}
@@ -47,8 +47,8 @@ export function getPropValue(prop: ElementProp, state: IState): DataAttributeVal
 
 	if(typeof prop === 'string') {
 		return prop;
-	} else if((prop as IDataAttribute).DataAttribute) {
-		return (prop as IDataAttribute).value;
+	} else if((prop as DataAttribute).DataAttribute) {
+		return (prop as DataAttribute).value;
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
 		return (prop as ElementPropertyHandler).handler!(state);
 	}
@@ -74,7 +74,7 @@ export function createElement({ parent, config, context, module }: BuildElementO
 export type BuildElementOptions = {
 	parent: ICustomElement;
 	config: ChildElementDefinition;
-	context?: IState;
+	context?: IStateManager;
 	module?: ViewModule;
 };
 
@@ -90,9 +90,9 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 		const prop = config.className;
 		const setter = (value: DataAttributeValue) => element.setAttribute('class', value as string); 
 		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop, parent.state, setter);
+			setObservation(element as ICustomElement, prop, parent.$state, setter);
 		} else {
-			setObservation(parent, prop, parent.state, setter);
+			setObservation(parent, prop, parent.$state, setter);
 		}
 	}
 
@@ -101,9 +101,9 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 			element.setAttribute(name, value as string); 
 		};
 		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop!, parent.state, setter);
+			setObservation(element as ICustomElement, prop!, parent.$state, setter);
 		} else {
-			setObservation(parent, prop!, parent.state, setter);
+			setObservation(parent, prop!, parent.$state, setter);
 		}
 	});
 
@@ -113,13 +113,13 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 			element[name] = value; 
 		};
 		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop!, parent.state, setter);
+			setObservation(element as ICustomElement, prop!, parent.$state, setter);
 			// Object.defineProperty(element as CustomElement, name, {
 			//   get: () => getPropValue(prop, state),
 			//   set: (newProp) => setObservation(element as CustomElement, newProp, state, () => {})
 			// });
 		} else {
-			setObservation(parent, prop!, parent.state, setter);
+			setObservation(parent, prop!, parent.$state, setter);
 		}
 	});
 
@@ -127,9 +127,9 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 		const prop = config.style[styleName as StyleProperties];
 		const setter = (value: DataAttributeValue) => element.style[styleName as StyleProperties] = value as any; 
 		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop!, parent.state, setter);
+			setObservation(element as ICustomElement, prop!, parent.$state, setter);
 		} else {
-			setObservation(parent, prop!, parent.state, setter);
+			setObservation(parent, prop!, parent.$state, setter);
 		}
 	}
 

@@ -5,8 +5,9 @@ import {
 	ElementPropertyHandler, 
 	ElementProps, 
 	ICustomElement, 
-	IDataAttribute 
-} from "@/types";
+} from '@/types';
+
+import { DataAttribute } from './state';
 
 export default class PropertyManager<D extends ElementDescription> extends EventTarget implements CustomElementProps<any> {
 	#values: Record<string, any>;
@@ -21,13 +22,13 @@ export default class PropertyManager<D extends ElementDescription> extends Event
 			if(definedProp) {
 				if(typeof definedProp === 'string') {
 					defaultValue = definedProp;
-				} else if((definedProp as IDataAttribute).DataAttribute) {
-					defaultValue = (definedProp as IDataAttribute).value;
+				} else if((definedProp as DataAttribute).DataAttribute) {
+					defaultValue = (definedProp as DataAttribute).value;
 				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyHandler).handler) {
 					defaultValue = (definedProp as ElementPropertyHandler).handler!.apply(element, [element.context]);
 				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyDataSource).path) {
 					let dataProvider = element.context;
-					const attr = dataProvider[(definedProp as ElementPropertyDataSource).path] as IDataAttribute;
+					const attr = dataProvider[(definedProp as ElementPropertyDataSource).path] as DataAttribute;
 					defaultValue = attr.value;
 				}
 			}
@@ -44,7 +45,7 @@ export default class PropertyManager<D extends ElementDescription> extends Event
 				},
 				set: (value: any) => {
 					if(this.#values[propName]?.DataAttribute) {
-						(this.#values[propName] as IDataAttribute).value = value;
+						(this.#values[propName] as DataAttribute).value = value;
 					} else {
 						this.#values[propName] = value;
 					}

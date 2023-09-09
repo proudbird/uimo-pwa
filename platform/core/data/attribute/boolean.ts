@@ -1,11 +1,13 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { BooleanAttributeOptions, IDataAttribute } from "@/types";
+import { BooleanAttributeOptions } from '@/types';
+
+import { DataAttribute } from '../state';
+import DataAttributeBase from './dataAttribute';
+import { DataAttributeChangeEvent } from '../events';
 
 /**
  * Manages a boolean value and notifies consumers about any changes to that value
  */
-export default class BooleanAttribute extends DataAttribute implements IDataAttribute {
+export default class BooleanAttribute extends DataAttributeBase {
 	#value: boolean;
 	#prevValue: boolean;
 

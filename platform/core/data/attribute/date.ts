@@ -1,11 +1,11 @@
-import DataAttribute from "./dataAttribute";
-import { DataAttributeChangeEvent } from "./events";
-import { DateAttributeFormat, DateAttributeInitValue, DateAttributeOptions, IDataAttribute } from "@/types";
+import DataAttributeBase from './dataAttribute';
+import { DataAttributeChangeEvent } from '../events';
+import { DateAttributeFormat, DateAttributeInitValue, DateAttributeOptions } from '@/types';
 
 /**
  * Manages a Date value and notifies consumers about any changes to that value
  */
-export default class DateAttribute extends DataAttribute implements IDataAttribute {
+export default class DateAttribute extends DataAttributeBase {
 	#value: Date;
 	#prevValue: Date;
 	#initValue?: DateAttributeInitValue;
