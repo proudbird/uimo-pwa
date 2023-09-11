@@ -1,0 +1,30 @@
+@import '~@spectrum-css/table/dist/index-vars';
+
+uimo-table-header-cell {
+  @extend .spectrum-Table-headCell;
+
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  position: relative;
+
+  & > .title {
+    @extend .spectrum-Table-columnTitle;
+  }
+
+  &:hover {
+    border-inline-end: var(--mod-table-border-width, var(--spectrum-table-border-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
+    padding-inline-end: 5px;
+  }
+
+  & > .resize-area {
+    position: absolute;
+    cursor: col-resize;
+    background-color: transparent;
+    height: 100%;
+    width: 20px;
+    top: 0;
+    right: -10px;
+    z-index: 1;
+  }
+}

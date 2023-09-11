@@ -1,0 +1,9 @@
+@import '~@spectrum-css/table/dist/index-vars';
+
+uimo-table-row {
+  @extend .spectrum-Table-row;
+
+  display: grid;
+  width: 100%;
+  pointer-events: none;
+}

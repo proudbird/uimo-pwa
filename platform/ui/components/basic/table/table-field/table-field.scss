@@ -1,0 +1,23 @@
+
+@import '~@spectrum-css/table/dist/index-vars';
+
+uimo-table-field {
+  @extend .spectrum-Table-cell;
+
+  display: flex;
+  pointer-events: auto;
+  
+  border-block-start: none;
+  border-block-end: var(--mod-table-border-width, var(--spectrum-table-border-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
+
+  &:hover {
+    background-color: var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
+  }
+
+  & > div {
+    min-width: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}

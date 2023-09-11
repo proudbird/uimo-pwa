@@ -5,3 +5,9 @@ export class DataAttributeChangeEvent<T> extends Event {
 		super('change');
 	}
 }
+
+export class CollectionDataAttributeChangeEvent<T> extends Event {
+	constructor(public initiator: DataAttribute, public data: T, public page: number) {
+		super('change');
+	}
+}

@@ -44,40 +44,31 @@ type ViewComponent = Component<ViewDescriptionType, HTMLDivElement>;
 
 declare namespace JSX {
   interface IntrinsicElements {
-    'ui-view': Component<ViewDescriptionType, HTMLDivElement>;
-    'ui-button': Component<ButtonDescriptionType, HTMLButtonElement>;
-    'ui-box': Component<BoxDescriptionType, HTMLDivElement>;
-    'ui-textfield': Component<TextFieldDescriptionType, HTMLInputElement>;
-    'ui-text': Component<TextFieldDescriptionType, HTMLInputElement>;
-    'ui-numberfield': Component<NumberFieldDescriptionType, HTMLInputElement>;
-    'ui-collection': Component<NumberFieldDescriptionType, HTMLInputElement>;
-    'ui-attribute': Component<NumberFieldDescriptionType, HTMLInputElement>;
-    view: Component<ViewDescriptionType, HTMLDivElement>;
+    'view': Component<ViewDescriptionType, HTMLDivElement>;
     'button': Component<ButtonDescriptionType, HTMLButtonElement>;
     'box': Component<BoxDescriptionType, HTMLDivElement>;
     'textfield': Component<TextFieldDescriptionType, HTMLInputElement>;
     'text': Component<TextFieldDescriptionType, HTMLInputElement>;
     'numberfield': Component<NumberFieldDescriptionType, HTMLInputElement>;
-    'collection': Component<NumberFieldDescriptionType, HTMLInputElement>;
     'table': any;
     'table-field': any;
-    'attribute': any;
-    'slot:item': any;
+    'slot:fields': any;
     'slot:context-menu': any;
     'slot:tooltip': any;
   }
 
-  class Uimo {
-    constructor(props: { pathToCubes: string });
-  
-    static(): string;
-    index(): string;
-    loadView(pathToCubes: string, viewId: string): Promise<any>;
-    loadModule(pathToCubes: string, filename: string, moduleId: string): Promise<any>;
-    initApp(params: any): Promise<any>;
-  }
   
 }
+class Uimo {
+  constructor(props: { pathToCubes: string });
+
+  static(): string;
+  index(): string;
+  loadView(pathToCubes: string, viewId: string): Promise<any>;
+  loadModule(pathToCubes: string, filename: string, moduleId: string): Promise<any>;
+  initApp(params: any): Promise<any>;
+}
+
 type DynamicList = any;
 
 

@@ -17,12 +17,10 @@ export default class PropertyManager<D extends ElementDescription> extends Event
 		this.#values = {};
 
 		Object.entries(description.props || {}).map(([propName, prop]) => {
-			let defaultValue = prop?.defaultValue;
 			let definedProp = inputProps[propName as keyof ElementProps];
+			let defaultValue = definedProp || prop?.defaultValue;
 			if(definedProp) {
-				if(typeof definedProp === 'string') {
-					defaultValue = definedProp;
-				} else if((definedProp as DataAttribute).DataAttribute) {
+				if((definedProp as DataAttribute).DataAttribute) {
 					defaultValue = (definedProp as DataAttribute).value;
 				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyHandler).handler) {
 					defaultValue = (definedProp as ElementPropertyHandler).handler!.apply(element, [element.context]);

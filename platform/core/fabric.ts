@@ -14,15 +14,18 @@ import {
 } from '@/types';
 
 import { DataAttribute, IState, IStateManager } from './data/state';
+import { IDataAttributeCollection, IDataAttributeSingle } from './data/state/types';
 
 export function setObservation(element: ICustomElement, prop: ElementProp, data: IStateManager, setter?: DataAttributeSetter): void {
 	if(!(prop)) return;
 
 	if(typeof prop === 'string') { // if number. boolean, date???
 		setter && setter(prop);
+	} else if((prop as IDataAttributeCollection).isIterable) {
+		element.observe((prop as DataAttribute), () => element.onDataLoad && element.onDataLoad(prop as IDataAttributeCollection));
 	} else if((prop as DataAttribute).DataAttribute) {
-		setter && setter((prop as DataAttribute).value);
-		element.observe((prop as DataAttribute), () => setter && setter((prop as DataAttribute).value));
+		setter && setter((prop as IDataAttributeSingle).value);
+		element.observe((prop as DataAttribute), () => setter && setter((prop as IDataAttributeSingle).value));
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
 		setter && setter((prop as ElementPropertyHandler).handler!(data.getData()));
 		if((prop as ElementPropertyHandler).dependencies?.length) {
@@ -36,9 +39,13 @@ export function setObservation(element: ICustomElement, prop: ElementProp, data:
 	}  else if(typeof prop === 'object' && (prop as ElementPropertyDataSource).path) {
 		prop = prop as ElementPropertyDataSource;
 		let dataProvider = data;
-		const attr = dataProvider[prop.path] as DataAttribute;
-		setter && setter(attr.value);
-		element.observe(attr, () => setter && setter(attr.value));
+		const attr = dataProvider[prop.path];
+		if((attr as IDataAttributeCollection).isIterable) { 
+			element.observe(attr, () => element.onDataLoad && element.onDataLoad(attr));
+		} else {
+			setter && setter(attr.value);
+			element.observe(attr, () => setter && setter(attr.value));
+		}
 	}
 }
 
@@ -48,7 +55,7 @@ export function getPropValue(prop: ElementProp, state: IState): DataAttributeVal
 	if(typeof prop === 'string') {
 		return prop;
 	} else if((prop as DataAttribute).DataAttribute) {
-		return (prop as DataAttribute).value;
+		return (prop as IDataAttributeSingle).value;
 	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
 		return (prop as ElementPropertyHandler).handler!(state);
 	}

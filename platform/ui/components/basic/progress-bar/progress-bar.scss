@@ -1,0 +1,23 @@
+@import '~@spectrum-css/progressbar/dist/index-vars';
+
+uimo-progress-bar {
+  @extend .spectrum-ProgressBar, .spectrum-ProgressBar--sizeM; 
+
+  .track {
+    @extend .spectrum-ProgressBar-track;
+
+    .fill {
+      @extend .spectrum-ProgressBar-fill;
+    }
+  }
+
+  &.indeterminate {
+    @extend .spectrum-ProgressBar--indeterminate;
+
+    .fill {
+      @extend .spectrum-ProgressBar-fill;
+
+      animation: indeterminate-loop-ltr var(--mod-progressbar-animation-duration-indeterminate, var(--spectrum-progressbar-animation-duration-indeterminate)) infinite;
+    }
+  }
+}

@@ -196,6 +196,8 @@ export type StyleDefinition = {
 export type ChildElementDefinition = ElementDefinition & { 
   tagName: string;
   id?: string;
+  index?: number; // TODO: where to define it - here or 
+                  // in ItemElementDefinition or even in props?
 };
 
 export type ItemElementDefinition = ChildElementDefinition & {
@@ -239,7 +241,13 @@ export type CustomElement<T extends ElementDescription> = CustomElementProps<T> 
 
 export type DataAttributeSetter = (value: any) => void;
 
-export type DOMElement = HTMLElement | SVGSVGElement | CustomElement<any>;
+export type DOMElement = HTMLElement | SVGSVGElement | ICustomElement;
+
+
+export type AddElementOptions = {
+	context?: IStateManager;
+  position?: number;
+}
 
 export interface ICustomElement extends HTMLElement {
   isCustom: true;
@@ -253,6 +261,9 @@ export interface ICustomElement extends HTMLElement {
   elements: Record<string, ICustomElement>;
   owner: IView;
   observe(observable: DataAttribute | IDataAttributeCollection, callback: EventListenerOrEventListenerObject): void;
+  addElement(config: ChildElementDefinition, { context }: AddElementOptions): DOMElement;
+  addElements(elements: ChildElementDefinition | ChildElementDefinition[]): void;
+  onDataLoad(data: IDataAttributeCollection): void;
 }
 
 export interface IView {

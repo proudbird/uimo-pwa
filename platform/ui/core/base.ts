@@ -3,12 +3,14 @@ import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
 
 import { 
+	AddElementOptions,
 	ChildElementDefinition,
 	Constructable, 
 	ConstructableCustomElement, 
 	CustomElement, 
 	CustomElementOptions, 
 	CustomElementProps, 
+	DOMElement, 
 	DataAttributeSetter, 
 	DataAttributeValue, 
 	ElementDefinition, 
@@ -124,6 +126,8 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 				callback 
 			});
 		}
+
+		onDataLoad(data: IDataAttributeCollection): void {}
   
 		/**
 		 * Defines element configuration to be rendered
@@ -224,12 +228,26 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 			}
 		}
 
-		public addElements(elements: ChildElementDefinition[]): void {
-			if(!Array.isArray(elements)) {
-				elements = [elements];
+		public addElement(config: ChildElementDefinition, { context, position }: AddElementOptions): DOMElement {
+			const element = buildElement({ parent: this, config, module: this.#module, context });
+			if(typeof position === 'number') {
+				this.insertBefore(element, this.children[position]);
+			} else {
+				this.appendChild(element);
+			}
+			if(config.alias) {
+				this.#elements[config.alias] = element as ICustomElement;
 			}
 
-			for(const elementConfig of elements) {
+			return element;
+		}
+
+		public addElements(configs: ChildElementDefinition | ChildElementDefinition[]): void {
+			if(!Array.isArray(configs)) {
+				configs = [configs];
+			}
+
+			for(const elementConfig of configs) {
 				const element = buildElement({ parent: this, config: elementConfig, module: this.#module });
 				this.appendChild(element);
 				if(elementConfig.alias) {

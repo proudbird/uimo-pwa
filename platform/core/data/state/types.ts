@@ -11,6 +11,12 @@ export interface IDataAttributeSingle extends IDataAttribute {
 
 export interface IDataAttributeCollection extends IDataAttribute {
   [Symbol.iterator](): Iterator<IStateManager>;
+  page: number;
+  limit: number;
+  forEach(iteratee: (value: IStateManager, index: number) => boolean | void): void;
+  getItemByIndex(index: number): IStateManager;
+	getItemByPage(page: number, index: number): IStateManager;
+  nextPage(): void;
 }
 
 export type DataAttribute = IDataAttributeSingle | IDataAttributeCollection;

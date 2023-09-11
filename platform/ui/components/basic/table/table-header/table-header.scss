@@ -1,0 +1,16 @@
+@import '~@spectrum-css/table/dist/index-vars';
+
+uimo-table-header {
+  @extend .spectrum-Table-head;
+
+  display: grid;
+  width: 100%;
+
+  border-bottom: var(--mod-table-outer-border-inline-width, var(--spectrum-table-outer-border-inline-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
+
+  &:hover {
+    &.resize-pending {
+      cursor: col-resize;
+    }
+  }
+}
