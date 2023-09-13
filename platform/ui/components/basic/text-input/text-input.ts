@@ -1,18 +1,18 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import { ElementDefinition, DataAttribute } from '@/types';
-import description from './textInput.desc';
+import { CustomElement, DefineElement } from '@/core';
+import { IMonoDataAttribute } from '@/core/data';
+import { ElementDefinition } from '@/types';
 
-const tagName = 'textinput';
+import { description, ITextInputComponent } from './text-input.types';
 
-@DefineElement(tagName)
-export default class TextInput extends customElement(description) {
+@DefineElement('text-input')
+export default class TextInput extends CustomElement<ITextInputComponent>(description) {
 	render(): ElementDefinition {
 		return {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.size}`;}
+					return `size-${this.props.size}`;}
 			},
 			children: [{
 				tagName: 'input',
@@ -22,7 +22,7 @@ export default class TextInput extends customElement(description) {
 				},
 				events: {
 					input: (e: Event) => {
-						(this.data as DataAttribute).value = (e.target as HTMLInputElement)!.value;
+						(this.data as IMonoDataAttribute).value = (e.target as HTMLInputElement)!.value;
 						const handler = this.config.events?.input;
 						if(handler) {
 							if(typeof handler === 'string') {

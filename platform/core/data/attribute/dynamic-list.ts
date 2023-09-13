@@ -4,6 +4,8 @@ import { IStateManager, StateManager } from '../state';
 import DataAttributeBase from './dataAttribute';
 import { CollectionDataAttributeChangeEvent } from '../events';
 
+export type DynamicList = {};
+
 export interface DynamicListAttributeOptions {
 	cube: string;
 	className: string;

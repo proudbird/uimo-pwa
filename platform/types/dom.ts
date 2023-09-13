@@ -1,6 +1,9 @@
-import { DragEventHandler, MouseEventHandler, FormEventHandler } from "react";
 
-export interface ElementEvents<T> {
+type DragEventHandler<T> = any;
+type MouseEventHandler<T> = any;
+type FormEventHandler<T> = any;
+
+export interface ElementEvents<T extends HTMLElement = HTMLElement> {
     // MouseEvents
   auxclick?: MouseEventHandler<T> | undefined;
   click?: MouseEventHandler<T> | undefined;

@@ -1,11 +1,11 @@
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 
-export interface Reference  {
+export type Reference = {
 	id: string;
 	model: string;
 	presentation: string;
-}
+};
 
 export type ReferenceAttributeOptions = {
   readonly initValue?: Reference | null;

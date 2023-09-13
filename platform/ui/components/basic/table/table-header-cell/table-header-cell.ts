@@ -1,11 +1,10 @@
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './table-header-cell.desc';
+import { CustomElement, DefineElement } from '@/core';
 import { ElementDefinition, ItemElementDefinition } from '@/types';
 
-const tagName = 'table-header-cell';
+import { description, ITableHeaderCellComponent } from './table-header-cell.types';
 
-@DefineElement(tagName)
-export default class TableHeaderCell extends customElement(description) {
+@DefineElement('table-header-cell')
+export default class TableHeaderCell extends CustomElement<ITableHeaderCellComponent>(description) {
   #resizeTimeout: number | undefined;
 
   render(): ElementDefinition {
@@ -74,7 +73,6 @@ export default class TableHeaderCell extends customElement(description) {
         {
           tagName: 'div',
           className: 'resize-line',
-          events: {},
         },
       ],
     };

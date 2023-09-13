@@ -1,16 +1,15 @@
-import { customElement, DefineElement } from '@/ui/core/base';
+import { CustomElement, DefineElement } from '@/core';
 import { ElementDefinition } from '@/types';
-import description from './label.desc';
 
-const tagName = 'label';
+import { description, ILabelComponent } from './label.types';
 
-@DefineElement(tagName)
-export default class Label extends customElement(description) {
+@DefineElement('label')
+export default class Label extends CustomElement<ILabelComponent>(description) {
 	render(): ElementDefinition {
 		return {
 			...this.config, 
 			props: {
-				innerHTML: this.props?.value || tagName
+				innerHTML: this.props?.value || this.tagName
 			},
 		};
 	}

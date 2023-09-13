@@ -1,3 +1,3 @@
-/// <reference path="../../_index.d.ts" />
+/// <reference path="../globals.d.ts" />
 
 declare var Me: any;

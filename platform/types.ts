@@ -1,13 +1,9 @@
+import { Reference } from "./core/data/attribute/reference";
 import { DataAttribute, IDataAttributeCollection, IState, IStateManager } from "./core/data/state";
+import { AttributeType, ICustomElement } from "./core/types";
 
-export enum AttributeType {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  DATE = 'date',
-}
 
-export type DataAttributeValue = string | number | boolean | Date | null | undefined;
+export type DataAttributeValue = string | number | boolean | Date | null | undefined | Reference;
 
 type ViewModuleMethods = Record<string, () => void>;
 
@@ -24,7 +20,7 @@ export type GetViewModuleHandler = (view: IView) => ViewModule;
 
 export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never;
 
-export type StateValueType = 'string' | 'number' | 'boolean' | 'date';
+type StateValueType = 'string' | 'number' | 'boolean' | 'date';
 
 export type StringAttributeOptions = {
   initValue?: string;
@@ -165,8 +161,6 @@ export type TypesMap = {
   'date': Date;
 };
 
-
-
 export type DataSourceEventHandler = () => StateValueType;
 
 export type ElementVarHandler = {
@@ -241,29 +235,9 @@ export type CustomElement<T extends ElementDescription> = CustomElementProps<T> 
 
 export type DataAttributeSetter = (value: any) => void;
 
-export type DOMElement = HTMLElement | SVGSVGElement | ICustomElement;
-
-
 export type AddElementOptions = {
 	context?: IStateManager;
   position?: number;
-}
-
-export interface ICustomElement extends HTMLElement {
-  isCustom: true;
-  config: ElementDefinition;
-  state: IState;
-  $state: IStateManager;
-  scope: IState;
-  $scope: IStateManager;
-  props: CustomElementProps<any>;
-  context: IState;
-  elements: Record<string, ICustomElement>;
-  owner: IView;
-  observe(observable: DataAttribute | IDataAttributeCollection, callback: EventListenerOrEventListenerObject): void;
-  addElement(config: ChildElementDefinition, { context }: AddElementOptions): DOMElement;
-  addElements(elements: ChildElementDefinition | ChildElementDefinition[]): void;
-  onDataLoad(data: IDataAttributeCollection): void;
 }
 
 export interface IView {
@@ -271,24 +245,4 @@ export interface IView {
 	node: ICustomElement;
 	state: IState;
 	showView(view: IView): void;
-}
-
-
-export interface Constructable<T> {
-  new (...args: any[]): T;
-  prototype: T;
-}
-
-export interface ConstructableCustomElement<T> {
-  new (options: CustomElementOptions): T;
-  prototype: T;
-}
-
-export type CustomElementOptions = {
-	owner: IView;
-	parent: ICustomElement;
-	config: ElementDefinition;
-	context?: IStateManager;
-	stateDefinition?: StateDefinition;
-	module?: ViewModule;
 }

@@ -1,12 +1,10 @@
-import { customElement, DefineElement } from '@/ui/core/base';
+import { DefineElement, CustomElement } from '@/core';
 import { ElementDefinition } from '@/types';
 
-import description from './progress-bar.desc';
+import { description, IProgressBarComponent } from './progress-bar.types';
 
-const tagName = 'progress-bar';
-
-@DefineElement(tagName)
-export default class ProgressBar extends customElement(description) {
+@DefineElement('progress-bar')
+export default class ProgressBar extends CustomElement<IProgressBarComponent>(description) {
 	render(): ElementDefinition {
 		return {
 			...this.config, 

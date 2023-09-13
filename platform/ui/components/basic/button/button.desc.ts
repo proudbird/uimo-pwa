@@ -44,11 +44,5 @@ export default {
 			type: 'boolean',
 			defaultValue: false
 		},
-		processing: {
-			title: 'Processing',
-			mutable: true,
-			type: 'boolean',
-			defaultValue: false
-		},
 	}
 } as const;

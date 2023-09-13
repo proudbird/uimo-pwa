@@ -1,8 +1,7 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './table-body.desc';
+import { CustomElement, DefineElement } from '@/core';
 
-const tagName = 'table-body';
+import { description, ITableBodyComponent } from './table-body.types';
 
-@DefineElement(tagName)
-export default class TableBody extends customElement(description) {}
+@DefineElement('table-body')
+export default class TableBody extends CustomElement<ITableBodyComponent>(description) {}

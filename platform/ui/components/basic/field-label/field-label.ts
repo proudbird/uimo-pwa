@@ -1,11 +1,10 @@
-import { customElement, DefineElement } from '@/ui/core/base';
+import { CustomElement, DefineElement } from '@/core';
 import { ElementDefinition } from '@/types';
-import description from './fieldLabel.desc';
 
-const tagName = 'fieldlabel';
+import { description, IFieldLabelComponent } from './field-label.types';
 
-@DefineElement(tagName)
-export default class FieldLabel extends customElement(description) {
+@DefineElement('field-label')
+export default class FieldLabel extends CustomElement<IFieldLabelComponent>(description) {
 	render(): ElementDefinition {
 		return {
 			...this.config, 
@@ -17,7 +16,7 @@ export default class FieldLabel extends customElement(description) {
 				tagName: 'native:label',
 				props: {	
 					htmlFor: this.config.props?.for || '',
-					innerHTML: this.config.props?.value || tagName
+					innerHTML: this.config.props?.value || this.tagName
 				},
 			}]
 		};

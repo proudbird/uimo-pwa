@@ -1,4 +1,4 @@
-import View from '../ui/core/view';
+import View from './view';
 import loadModule from './loadModule';
 
 export default class Application {

@@ -1,7 +1,6 @@
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './box.desc';
+import { CustomElement, DefineElement } from '@/core';
 
-const tagName = 'box';
+import { description, IBoxComponent } from './box.types';
 
-@DefineElement(tagName)
-export default class Box extends customElement(description) {}
+@DefineElement('box')
+export default class Box extends CustomElement<IBoxComponent>(description) {}

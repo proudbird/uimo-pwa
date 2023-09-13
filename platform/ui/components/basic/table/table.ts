@@ -1,14 +1,13 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import { IDataAttributeCollection } from '@/core/data/state';
-import { type CustomElementOptions, ChildElementDefinition, ItemElementDefinition } from '@/types';
+import { CustomElement, DefineElement } from '@/core';
+import { IPolyDataAttribute } from '@/core/data';
+import { type CustomElementOptions } from '@/core/types';
+import { type ChildElementDefinition, ItemElementDefinition } from '@/types';
 
-import description from './table.desc';
+import { description, ITableComponent } from './table.types';
 
-const tagName = 'table';
-
-@DefineElement(tagName)
-export default class Table extends customElement(description) {
+@DefineElement('table')
+export default class Table extends CustomElement<ITableComponent>(description) {
 
   constructor({ config, stateDefinition, ...rest }: CustomElementOptions) {
     config = config || {};
@@ -92,7 +91,7 @@ export default class Table extends customElement(description) {
     const callback: IntersectionObserverCallback = (entries, observer) => {
         entries.forEach((entry) => {
           if(entry.boundingClientRect.top > 0) {
-            (this.data as IDataAttributeCollection).nextPage();
+            (this.data as IPolyDataAttribute).nextPage();
           }       
         });
     }
@@ -105,7 +104,7 @@ export default class Table extends customElement(description) {
   onDataLoad() {
     const itemSlot = (this.config.children as ChildElementDefinition[])?.find(slot => slot.tagName === 'fields');
 
-    const data = this.data as IDataAttributeCollection;
+    const data = this.data as IPolyDataAttribute;
     if(data.page === 1) {
       ((itemSlot?.children || []) as ChildElementDefinition[]).forEach((fieldConfig, colIndex) => {
         this.elements.header.addElements({

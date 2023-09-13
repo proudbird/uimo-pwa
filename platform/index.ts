@@ -1,4 +1,4 @@
-import { loadApp } from './core';
+import { loadApp } from './app';
 import Application from './core/application';
 
 export class Cube {

@@ -1,9 +1,8 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './table-row.desc';
+import { CustomElement, DefineElement } from '@/core';
 
-const tagName = 'table-row';
+import { description, ITableRowComponent } from './table-row.types';
 
-@DefineElement(tagName)
-export default class TableRow extends customElement(description) {}
+@DefineElement('table-row')
+export default class TableRow extends CustomElement<ITableRowComponent>(description) {}
 

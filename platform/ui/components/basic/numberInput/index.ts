@@ -1,2 +1,2 @@
-import './numberInput.scss';
-export { default } from './numberInput';
+import './number-input.scss';
+export { default } from './number-input';

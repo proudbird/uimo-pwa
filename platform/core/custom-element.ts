@@ -5,22 +5,15 @@ import { genId } from '@/utils/helpers';
 import { 
 	AddElementOptions,
 	ChildElementDefinition,
-	Constructable, 
-	ConstructableCustomElement, 
-	CustomElement, 
-	CustomElementOptions, 
-	CustomElementProps, 
-	DOMElement, 
 	DataAttributeSetter, 
 	DataAttributeValue, 
 	ElementDefinition, 
-	ElementDescription, 
 	ElementEventHandler, 
 	ElementPropertyDataSource, 
-	ICustomElement, 
 	IView, 
 	StyleProperties, 
-	ViewModule 
+	ViewModule, 
+	CustomElementProps,
 } from '@/types';
 
 import { 
@@ -32,13 +25,23 @@ import {
 } from '@/core/data/state';
 
 import PropertyManager from '@/core/data/manager';
+import { 
+	Constructable,
+	CustomElementDefinition, 
+	CustomElementOptions, 
+	DOMElement, 
+	ICustomElement, 
+	ReturnClassType 
+} from './types';
 
 type Observation = {
   observable: DataAttribute,
   callback: EventListenerOrEventListenerObject
 }
 
-// decorator to register class as custom element
+/**
+ * Decorator to register class as custom element
+ */
 export function DefineElement(tagName: string) {
 	return function <T extends Constructable<ICustomElement>>(constructor: T) {
 		class Extended extends constructor {
@@ -53,7 +56,7 @@ export function DefineElement(tagName: string) {
 	};
 }
 
-function customElementFabric<D extends ElementDescription>(description: D): ReturnClassType<D> {
+export function customElementFabric<D extends CustomElementDefinition<any, any>>(description: D): ReturnClassType<D> {
 	class Base extends HTMLElement implements ICustomElement {
 		#id: string;
 		#config: ElementDefinition = {} as ElementDefinition;
@@ -131,9 +134,8 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
   
 		/**
 		 * Defines element configuration to be rendered
-		 * @returns {ElementDefinition} - element configuration
 		 */
-		protected render(): ElementDefinition {
+		render(): ElementDefinition {
 			return this.config;
 		}
   
@@ -321,9 +323,3 @@ function customElementFabric<D extends ElementDescription>(description: D): Retu
 
 	return Base as ReturnClassType<D>;
 }
-
-export type ReturnClassType<D extends ElementDescription> = Constructable<ICustomElement> & ConstructableCustomElement<CustomElement<D>>
-
-export const customElement = customElementFabric as (
-  <D extends ElementDescription>(definition: D) => ReturnClassType<D>
-);

@@ -1,12 +1,10 @@
-import { customElement, DefineElement } from '@/ui/core/base';
+import { CustomElement, DefineElement } from '@/core';
 import { ElementDefinition } from '@/types';
 
-import description from './text.desc';
+import { description, ITextComponent } from './text.types';
 
-const tagName = 'text';
-
-@DefineElement(tagName)
-export default class Text extends customElement(description) {
+@DefineElement('text')
+export default class Text extends CustomElement<ITextComponent>(description) {
 	render(): ElementDefinition {
 		return {
 			...this.config, 

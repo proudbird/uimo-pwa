@@ -1,17 +1,16 @@
-import { customElement, DefineElement } from '@/ui/core/base';
+import { CustomElement, DefineElement } from '@/core';
 import { ElementDefinition } from '@/types';
-import description from './button.desc';
 
-const tagName = 'button';
+import { description, IButtonComponent } from './button.types';
 
-@DefineElement(tagName)
-export default class Button extends customElement(description) {
+@DefineElement('button')
+export default class Button extends CustomElement<IButtonComponent>(description) {
 	render(): ElementDefinition {
 		return {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.size} variant-accent treatment-fill ${this.processing ? 'processing' : ''}`;}
+					return `size-${this.props.size} variant-accent treatment-fill ${this.state.processing ? 'processing' : ''}`;}
 			},
 			attributes: {
 				role: 'button',
@@ -20,7 +19,7 @@ export default class Button extends customElement(description) {
 			children: [{
 				tagName: 'label',
 				props: {
-					value: this.props.label || tagName
+					value: this.props.label || this.tagName
 				},
 			}]
 		};

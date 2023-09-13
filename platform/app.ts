@@ -1,9 +1,8 @@
 import './ui/components';
 import './style.scss';
 
-import View from './ui/core/view';
+import View from './core/view';
 import loadModule from './core/loadModule';
-import { AppObject, Cube } from './index';
 
 import appFrame from './ui/builtIn/app-frame';
 

@@ -1,13 +1,12 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './table-field.desc';
+import { CustomElement, DefineElement } from '@/core';
+import { IMonoDataAttribute } from '@/core/data';
 import { ElementDefinition } from '@/types';
-import { DataAttribute } from '@/core/data/state';
 
-const tagName = 'table-field';
+import { description, ITableFieldComponent } from './table-field.types';
 
-@DefineElement(tagName)
-export default class TableField extends customElement(description) {
+@DefineElement('table-field')
+export default class TableField extends CustomElement<ITableFieldComponent>(description) {
   render(): ElementDefinition {
 		return {
 			...this.config, 
@@ -15,7 +14,7 @@ export default class TableField extends customElement(description) {
         {
           tagName: 'div',
           props: {
-            innerHTML: (this.data as DataAttribute).value?.presentation
+            innerHTML: (this.data as IMonoDataAttribute).value?.presentation
           },
         }
       ]

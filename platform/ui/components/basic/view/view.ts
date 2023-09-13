@@ -1,7 +1,6 @@
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './view.desc';
+import { CustomElement, DefineElement } from '@/core';
 
-const tagName = 'view';
+import { description, IViewComponent } from './view.types';
 
-@DefineElement(tagName)
-export default class View extends customElement(description) {}
+@DefineElement('view')
+export default class View extends CustomElement<IViewComponent>(description) {}

@@ -1,19 +1,18 @@
-import { customElement, DefineElement } from '@/ui/core/base';
+import { CustomElement, DefineElement } from '@/core';
 import { ElementDefinition } from '@/types';
-import description from './textField.desc';
+
+import { description, INumberFieldComponent } from './number-field.types';
 import { genId } from '@/utils/helpers';
 
-const tagName = 'textfield';
-
-@DefineElement(tagName)
-export default class TextField extends customElement(description) {
+@DefineElement('number-field')
+export default class NumberField extends CustomElement<INumberFieldComponent>(description) {
 	render(): ElementDefinition {
 		const inputId = genId();
 		return {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.size}`;}
+					return `size-${this.props.size}`;}
 			},
 			children: [{
 				tagName: '@fieldlabel',
@@ -23,7 +22,7 @@ export default class TextField extends customElement(description) {
 					for: inputId
 				}
 			},{
-				tagName: '@textinput',
+				tagName: '@numberinput',
 				props: {
 					inputId,
 					size: this.props.size

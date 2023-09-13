@@ -1,11 +1,10 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import description from './table-header.desc';
+import { CustomElement, DefineElement } from '@/core';
 
-const tagName = 'table-header';
+import { description, ITableHeaderComponent } from './table-header.types';
 
-@DefineElement(tagName)
-export default class TableHeader extends customElement(description) {
+@DefineElement('table-header')
+export default class TableHeader extends CustomElement<ITableHeaderComponent>(description) {
 
   render() {
     return {

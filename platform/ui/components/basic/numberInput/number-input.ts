@@ -1,12 +1,13 @@
 
-import { customElement, DefineElement } from '@/ui/core/base';
-import { type CustomElementOptions, ElementDefinition, DataAttribute } from '@/types';
-import description from './numberInput.desc';
+import { CustomElement, DefineElement } from '@/core';
+import type { CustomElementOptions } from '@/core';
+import { IMonoDataAttribute } from '@/core/data';
+import { ElementDefinition } from '@/types';
 
-const tagName = 'numberinput';
+import { description, INumberInputComponent } from './number-input.types';
 
-@DefineElement(tagName)
-export default class NumberInput extends customElement(description) {
+@DefineElement('number-input')
+export default class NumberInput extends CustomElement<INumberInputComponent>(description) {
 
 	constructor({ stateDefinition, ...rest }: CustomElementOptions) {
 		stateDefinition = stateDefinition || {};
@@ -19,7 +20,7 @@ export default class NumberInput extends customElement(description) {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.size}`;}
+					return `size-${this.props.size}`;}
 			},
 			children: [{
 				tagName: 'input',
@@ -44,8 +45,8 @@ export default class NumberInput extends customElement(description) {
 							this.state.inputValue.value = value;
 							return;
 						}
-						(this.data as DataAttribute).value = (e.target as HTMLInputElement)!.value;
-						this.state.inputValue.value = (this.data as DataAttribute).value;
+						(this.data as IMonoDataAttribute).value = (e.target as HTMLInputElement)!.value;
+						this.state.inputValue.value = (this.data as IMonoDataAttribute).value;
 						const handler = this.config.events?.input;
 						if(handler) {
 							if(typeof handler === 'string') {
