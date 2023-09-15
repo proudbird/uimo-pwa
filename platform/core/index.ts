@@ -1,13 +1,12 @@
-import { customElementFabric, DefineElement } from "./custom-element";
-import { ElementDescription } from "@/types";
-import { CustomElementDefinition, CustomElementOptions, ReturnClassType } from "./types";
+import { componentFabric, DefineComponent } from './component';
+import { ComponentDefinition, ComponentOptions, ComponentSpecification, ExtendedComponent } from './types';
 
-export const CustomElement = customElementFabric as (
-  <D extends CustomElementDefinition<any, any>>(definition: ElementDescription) => ReturnClassType<D>
+export const Component = componentFabric as (
+  <D extends ComponentDefinition<any, any>>(definition: ComponentSpecification) => ExtendedComponent<D>
 );
 
-export { DefineElement };
+export { DefineComponent };
 export type { 
-  CustomElementDefinition, 
-  CustomElementOptions 
+  ComponentDefinition, 
+  ComponentOptions 
 };

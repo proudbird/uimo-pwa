@@ -1,4 +1,5 @@
-import { DataAttributeValue, DataAttribute } from '@/core/data/state';
+import { IMonoDataAttribute } from '..';
+import { DataAttributeValue, DataAttribute } from '../state';
 
 export default class DataAttributeChangeEvent extends Event {
 	public initiator: DataAttribute;
@@ -10,6 +11,7 @@ export default class DataAttributeChangeEvent extends Event {
 		super('change');
 		this.initiator = initiator;
 		this.initiatorId = initiatorId;
-		this.newValue = initiator.value;
+		this.newValue = (initiator as IMonoDataAttribute).value;
+		this.prevValue = (initiator as IMonoDataAttribute).value;
 	}
 }

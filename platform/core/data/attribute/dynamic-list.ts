@@ -1,8 +1,8 @@
-import { StateDefinition } from '@/types';
 import { IStateManager, StateManager } from '../state';
 
 import DataAttributeBase from './dataAttribute';
 import { CollectionDataAttributeChangeEvent } from '../events';
+import { StateDefinition } from '..';
 
 export type DynamicList = {};
 
@@ -50,6 +50,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 	}
 
 	async #fetchData(callback: (data: any) => void) {
+		//@ts-ignore
 		const response = await fetch(`${location.origin}/app/${Application.id}/list/`, {
 			method: 'POST',
 			headers: {

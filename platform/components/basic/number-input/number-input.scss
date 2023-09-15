@@ -1,0 +1,27 @@
+@import '~@spectrum-css/textfield/dist/index-vars';
+
+uimo-number-input > input {
+  @extend .spectrum-Textfield-input;
+
+  &.size-small {
+    @extend .spectrum-Textfield--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-Textfield--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-Textfield--sizeL;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--highcontrast-textfield-focus-indicator-color, var(--mod-textfield-focus-indicator-color, var(--spectrum-textfield-focus-indicator-color)));
+  }
+
+  &:focus:hover {
+    outline: none;
+    border-color: var(--highcontrast-textfield-focus-indicator-color, var(--mod-textfield-focus-indicator-color, var(--spectrum-textfield-focus-indicator-color)));
+  }
+}

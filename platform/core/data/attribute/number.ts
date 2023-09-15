@@ -1,7 +1,7 @@
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 import { ValueError } from '../errors';
-import { NumberAttributeOptions } from '@/types';
+import { NumberAttributeOptions } from './types';
 
 /**
  * Manages a number value and notifies consumers about any changes to that value

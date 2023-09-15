@@ -1,46 +1,32 @@
-
-import { 
-	ChildElementDefinition,
-	CustomElementOptions,
-	DataAttributeSetter,
-	DataAttributeValue, 
-	ElementEventHandler, 
-	ElementProp, 
-	ElementPropertyDataSource, 
-	ElementPropertyHandler, 
-	ICustomElement, 
-	StyleProperties, 
-	ViewModule 
-} from '@/types';
-
+import { DataAttributeSetter, IMonoDataAttribute, IPolyDataAttribute } from './data';
 import { DataAttribute, IState, IStateManager } from './data/state';
-import { IDataAttributeCollection, IDataAttributeSingle } from './data/state/types';
+import { ChildTemplate, ComponentOptions, EventHandler, IComponent, PropDataSourceDefinition, PropDefinition, PropHandlerDefinition, StyleProperties, ViewModule } from './types';
 
-export function setObservation(element: ICustomElement, prop: ElementProp, data: IStateManager, setter?: DataAttributeSetter): void {
+export function setObservation(element: IComponent, prop: PropDefinition, data: IStateManager, setter?: DataAttributeSetter): void {
 	if(!(prop)) return;
 
 	if(typeof prop === 'string') { // if number. boolean, date???
 		setter && setter(prop);
-	} else if((prop as IDataAttributeCollection).isIterable) {
-		element.observe((prop as DataAttribute), () => element.onDataLoad && element.onDataLoad(prop as IDataAttributeCollection));
+	} else if((prop as IPolyDataAttribute).isIterable) {
+		element.observe((prop as DataAttribute), () => element.onDataLoad && element.onDataLoad(prop as IPolyDataAttribute));
 	} else if((prop as DataAttribute).DataAttribute) {
-		setter && setter((prop as IDataAttributeSingle).value);
-		element.observe((prop as DataAttribute), () => setter && setter((prop as IDataAttributeSingle).value));
-	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
-		setter && setter((prop as ElementPropertyHandler).handler!(data.getData()));
-		if((prop as ElementPropertyHandler).dependencies?.length) {
-			for(const dep of (prop as ElementPropertyHandler).dependencies!) {
-				element.observe(dep, () => setter && setter((prop as ElementPropertyHandler).handler!(data.getData())));
+		setter && setter((prop as IMonoDataAttribute).value);
+		element.observe((prop as DataAttribute), () => setter && setter((prop as IMonoDataAttribute).value));
+	} else if(typeof prop === 'object' && (prop as PropHandlerDefinition).handler) {
+		setter && setter((prop as PropHandlerDefinition).handler!());
+		if((prop as PropHandlerDefinition).dependencies?.length) {
+			for(const dep of (prop as PropHandlerDefinition).dependencies!) {
+				element.observe(dep as DataAttribute, () => setter && setter((prop as PropHandlerDefinition).handler!()));
 			}
 		} else {
-			element.addEventListener('change', () => setter && setter((prop as ElementPropertyHandler).handler!(data.getData())));
-			// element.addEventListener('input', () => setter((prop as ElementPropertyHandler).handler!(data.parent.state)));
+			element.addEventListener('change', () => setter && setter((prop as PropHandlerDefinition).handler!()));
+			// element.addEventListener('input', () => setter((prop as PropHandlerDefinition).handler!(data.parent.state)));
 		}
-	}  else if(typeof prop === 'object' && (prop as ElementPropertyDataSource).path) {
-		prop = prop as ElementPropertyDataSource;
+	}  else if(typeof prop === 'object' && (prop as PropDataSourceDefinition).path) {
+		prop = prop as PropDataSourceDefinition;
 		let dataProvider = data;
 		const attr = dataProvider[prop.path];
-		if((attr as IDataAttributeCollection).isIterable) { 
+		if((attr as IPolyDataAttribute).isIterable) { 
 			element.observe(attr, () => element.onDataLoad && element.onDataLoad(attr));
 		} else {
 			setter && setter(attr.value);
@@ -49,24 +35,24 @@ export function setObservation(element: ICustomElement, prop: ElementProp, data:
 	}
 }
 
-export function getPropValue(prop: ElementProp, state: IState): DataAttributeValue {
+export function getPropValue(prop: PropDefinition, state: IState): any {
 	if(!(prop || state)) return;
 
 	if(typeof prop === 'string') {
 		return prop;
 	} else if((prop as DataAttribute).DataAttribute) {
-		return (prop as IDataAttributeSingle).value;
-	} else if(typeof prop === 'object' && (prop as ElementPropertyHandler).handler) {
-		return (prop as ElementPropertyHandler).handler!(state);
+		return (prop as IMonoDataAttribute).value;
+	} else if(typeof prop === 'object' && (prop as PropHandlerDefinition).handler) {
+		return (prop as PropHandlerDefinition).handler!();
 	}
 }
 
-export function createElement({ parent, config, context, module }: BuildElementOptions): ICustomElement | HTMLElement | SVGSVGElement {
+export function createElement({ parent, config, context, module }: BuildElementOptions): IComponent | HTMLElement | SVGSVGElement {
 	// first trying to create custom element
 	if(config.type !== 'native') {
 		const Constructor = customElements.get(/(\@|ui\-)/.test(config.tagName) ? config.tagName.replace('@', 'uimo-').replace('ui-', 'uimo-') : `uimo-${config.tagName}`);
 		if(Constructor) {
-			return new Constructor({ owner: parent.owner, parent, config, context, module } as CustomElementOptions) as ICustomElement;
+			return new Constructor({ owner: parent.owner, parent, config, context, module } as ComponentOptions) as IComponent;
 		}
 	}
 
@@ -79,15 +65,15 @@ export function createElement({ parent, config, context, module }: BuildElementO
 }
 
 export type BuildElementOptions = {
-	parent: ICustomElement;
-	config: ChildElementDefinition;
+	parent: IComponent;
+	config: ChildTemplate;
 	context?: IStateManager;
 	module?: ViewModule;
 };
 
-export function buildElement({ parent, config, context, module }: BuildElementOptions): ICustomElement | HTMLElement | SVGSVGElement {
+export function buildElement({ parent, config, context, module }: BuildElementOptions): IComponent | HTMLElement | SVGSVGElement {
 	const element = createElement({ parent, config, context, module });
-	if((element as ICustomElement).isCustom) {
+	if((element as IComponent).isCustom) {
 		return element;
 	}
 
@@ -95,35 +81,35 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 
 	if(config.className) {
 		const prop = config.className;
-		const setter = (value: DataAttributeValue) => element.setAttribute('class', value as string); 
-		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop, parent.$state, setter);
+		const setter = (value: any) => element.setAttribute('class', value as string); 
+		if((element as IComponent).isCustom) {
+			setObservation(element as IComponent, prop, parent.$state, setter);
 		} else {
 			setObservation(parent, prop, parent.$state, setter);
 		}
 	}
 
 	Object.entries(config.attributes || {}).map(([name, prop]) => {
-		const setter = (value: DataAttributeValue) => {
+		const setter = (value: any) => {
 			element.setAttribute(name, value as string); 
 		};
-		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop!, parent.$state, setter);
+		if((element as IComponent).isCustom) {
+			setObservation(element as IComponent, prop!, parent.$state, setter);
 		} else {
 			setObservation(parent, prop!, parent.$state, setter);
 		}
 	});
 
 	Object.entries(config.props || {}).map(([name, prop]) => {
-		const setter = (value: DataAttributeValue) => {
+		const setter = (value: any) => {
 			//@ts-ignore
 			element[name] = value; 
 		};
-		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop!, parent.$state, setter);
-			// Object.defineProperty(element as CustomElement, name, {
+		if((element as IComponent).isCustom) {
+			setObservation(element as IComponent, prop!, parent.$state, setter);
+			// Object.defineProperty(element as Component, name, {
 			//   get: () => getPropValue(prop, state),
-			//   set: (newProp) => setObservation(element as CustomElement, newProp, state, () => {})
+			//   set: (newProp) => setObservation(element as Component, newProp, state, () => {})
 			// });
 		} else {
 			setObservation(parent, prop!, parent.$state, setter);
@@ -132,9 +118,9 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 
 	for(const styleName in config.style) {
 		const prop = config.style[styleName as StyleProperties];
-		const setter = (value: DataAttributeValue) => element.style[styleName as StyleProperties] = value as any; 
-		if((element as ICustomElement).isCustom) {
-			setObservation(element as ICustomElement, prop!, parent.$state, setter);
+		const setter = (value: any) => element.style[styleName as StyleProperties] = value as any; 
+		if((element as IComponent).isCustom) {
+			setObservation(element as IComponent, prop!, parent.$state, setter);
 		} else {
 			setObservation(parent, prop!, parent.$state, setter);
 		}
@@ -146,7 +132,7 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 				if(!module) {
 					throw new Error(`Can't get handler '${event}' for element '${config.tagName}': View module is not defined`);
 				}
-				const handler = module[event as keyof ICustomElement] as ElementEventHandler;
+				const handler = module[event as keyof IComponent] as EventHandler;
 				if(handler) {
 					handler.call(parent.owner, e);
 				} else {

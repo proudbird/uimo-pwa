@@ -4,10 +4,10 @@ import path from 'path';
 export default defineConfig({
 	build: {
 		rollupOptions: {
-			input: {path: 'platform/index.html'},
+			input: {path: 'index.html'},
 			
 		},
-		outDir: 'public',
+		outDir: 'dist',
 		sourcemap: true,
 
 	},

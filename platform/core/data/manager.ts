@@ -1,33 +1,33 @@
+import { IMonoDataAttribute } from '.';
 import { 
-	CustomElementProps,
-	ElementDescription, 
-	ElementPropertyDataSource, 
-	ElementPropertyHandler, 
-	ElementProps, 
-	ICustomElement, 
-} from '@/types';
+	ComponentProps,
+	ComponentSpecification,
+	IComponent,
+	PropDataSourceDefinition,
+	PropDefinitions,
+	PropHandlerDefinition,
+} from '../types';
 
 import { DataAttribute } from './state';
-import { IDataAttributeSingle } from './state/types';
 
-export default class PropertyManager<D extends ElementDescription> extends EventTarget implements CustomElementProps<any> {
+export default class PropertyManager<D extends ComponentSpecification> extends EventTarget implements ComponentProps<any> {
 	#values: Record<string, any>;
 
-	constructor(element: ICustomElement, description: D, inputProps: ElementProps) {
+	constructor(element: IComponent, description: D, inputProps: PropDefinitions) {
 		super();
 		this.#values = {};
 
 		Object.entries(description.props || {}).map(([propName, prop]) => {
-			let definedProp = inputProps[propName as keyof ElementProps];
+			let definedProp = inputProps[propName as keyof PropDefinitions];
 			let defaultValue = definedProp || prop?.defaultValue;
 			if(definedProp) {
 				if((definedProp as DataAttribute).DataAttribute) {
-					defaultValue = (definedProp as IDataAttributeSingle).value;
-				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyHandler).handler) {
-					defaultValue = (definedProp as ElementPropertyHandler).handler!.apply(element, [element.context]);
-				} else if(typeof definedProp === 'object' && (definedProp as ElementPropertyDataSource).path) {
+					defaultValue = (definedProp as IMonoDataAttribute).value;
+				} else if(typeof definedProp === 'object' && (definedProp as PropHandlerDefinition).handler) {
+					defaultValue = (definedProp as PropHandlerDefinition).handler!.apply(element, []);
+				} else if(typeof definedProp === 'object' && (definedProp as PropDataSourceDefinition).path) {
 					let dataProvider = element.context;
-					const attr = dataProvider[(definedProp as ElementPropertyDataSource).path] as IDataAttributeSingle;
+					const attr = dataProvider[(definedProp as PropDataSourceDefinition).path] as IMonoDataAttribute;
 					defaultValue = attr.value;
 				}
 			}
@@ -44,7 +44,7 @@ export default class PropertyManager<D extends ElementDescription> extends Event
 				},
 				set: (value: any) => {
 					if(this.#values[propName]?.DataAttribute) {
-						(this.#values[propName] as IDataAttributeSingle).value = value;
+						(this.#values[propName] as IMonoDataAttribute).value = value;
 					} else {
 						this.#values[propName] = value;
 					}

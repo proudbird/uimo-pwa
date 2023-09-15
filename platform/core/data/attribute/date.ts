@@ -1,6 +1,6 @@
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
-import { DateAttributeFormat, DateAttributeInitValue, DateAttributeOptions } from '@/types';
+import { DateAttributeFormat, DateAttributeInitValue, DateAttributeOptions } from './types';
 
 /**
  * Manages a Date value and notifies consumers about any changes to that value

@@ -1,10 +1,10 @@
-import './ui/components';
+import './components';
 import './style.scss';
 
 import View from './core/view';
 import loadModule from './core/loadModule';
 
-import appFrame from './ui/builtIn/app-frame';
+import appFrame from './components/builtIn/app-frame';
 
 export async function loadApp(root: HTMLElement): Promise<void> {
 	const app = await defineApp();

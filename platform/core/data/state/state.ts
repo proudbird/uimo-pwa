@@ -1,16 +1,12 @@
-import { 
-	ElementPropertyDataSource, 
-	ElementPropertyHandler, 
-	StateDefinition, 
-	StateValueType
-} from '@/types';
+import { PropDataSourceDefinition, PropHandlerDefinition } from '../../../core/types';
 
 import { 
 	DataAttribute, 
-	IDataAttributeCollection,
+	IMonoDataAttribute, 
 	IState, 
-	IStateManager
-} from './types';
+	IStateManager,
+	StateDefinition
+} from '../index';
 
 import dataAttributeConstructors from'../attribute/constructors';
 
@@ -21,7 +17,7 @@ class StateManagerBase {
 		this.#data = new State();
 	}
 
-	registerAttribute(attributeName: string, attribute: DataAttribute | IDataAttributeCollection) {
+	registerAttribute(attributeName: string, attribute: DataAttribute) {
 		this.#data.addAttribute(attributeName, attribute);
 	}
 
@@ -52,20 +48,21 @@ export class StateManager extends StateManagerBase {
 	constructor(definition: StateDefinition = {}, context?: IStateManager) {
 		super();
 		for(let [attrName, attrOptions] of Object.entries(definition)) {
-			let attr: DataAttribute | IDataAttributeCollection;
+			let attr: DataAttribute;
 			const value = attrOptions.initValue;
 			if(value?.DataAttribute) {
 				attr = value;	
-			} else if(typeof value === 'object' && (value as ElementPropertyHandler).handler) {
+			} else if(typeof value === 'object' && (value as PropHandlerDefinition).handler) {
 				// TODO: how to handle such cases???
 				throw new StateError(`State attribute can't be defined from handler'`);
-			} else if(typeof value === 'object' && (value as ElementPropertyDataSource).path) {
+			} else if(typeof value === 'object' && (value as PropDataSourceDefinition).path) {
 				attr = (context || {} as IStateManager)[value.path];
 				if(!attr) {
 					throw new StateError(`Context doesn't have attribute '${value.path}'`);
 				}
 			} else {
-				const Constructor = dataAttributeConstructors[attrOptions.type as StateValueType];
+				//@ts-ignore
+				const Constructor = dataAttributeConstructors[attrOptions.type as any];
 				if(Constructor) {
 					attr = new Constructor(attrOptions);
 				} else {
@@ -86,21 +83,21 @@ export class StateManager extends StateManagerBase {
 
 class StateBase {
 
-	addAttribute(attributeName: string, attribute: DataAttribute | IDataAttributeCollection) {
+	addAttribute(attributeName: string, attribute: DataAttribute) {
 		Object.defineProperty(this, attributeName, {
 			enumerable: true,
 			get: () => {
 				if(attribute.isIterable) {
 					return attribute;
 				} else {
-					return (attribute as DataAttribute).value;
+					return (attribute as IMonoDataAttribute).value;
 				}
 			},
 			set: (value) => {
 				if(attribute.isIterable) {
 					throw new StateError(`Attribute ${String(attributeName)} is iterable and cannot be set`);
 				} else {
-					(attribute as DataAttribute).value = value;
+					(attribute as IMonoDataAttribute).value = value;
 					return true;
 				}
 			}

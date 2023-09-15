@@ -67,3 +67,11 @@ export type DataAttributeMap<T> =
     [property in keyof T]: DataAttributeMap<T[property]>;
   }
   
+  export type StateDefinition = Record<string, { 
+    type: string, 
+    defaultValue?: any, // TODO: we need to leave only one of these
+    initValue?: any,  
+    link?: any 
+  }>;
+
+  export type DataAttributeSetter = (value: any) => void;

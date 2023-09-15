@@ -1,4 +1,4 @@
-import { BooleanAttributeOptions } from '@/types';
+import { BooleanAttributeOptions } from './types';
 
 import { DataAttribute } from '../state';
 import DataAttributeBase from './dataAttribute';

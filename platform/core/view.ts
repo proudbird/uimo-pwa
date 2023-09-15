@@ -1,15 +1,15 @@
 import { 
-	ElementDefinition, 
-	GetViewModuleHandler, 
-	ICustomElement, 
+	IComponent, 
 	IView, 
-	StateDefinition, 
+	InitViewModuleCallback, 
+	Template, 
 	ViewModule
-} from '@/types';
+} from '@/core/types';
 
+import { StateDefinition } from '@/core/data';
 import { IState, IStateManager, StateManager } from '@/core/data/state';
 
-import ViewElement from '@/ui/components/basic/view';
+import ViewElement from '@/components/basic/view';
 
 type ViewParams = {
   data: Record<string, any>;
@@ -18,9 +18,9 @@ type ViewParams = {
 export default class View implements IView {
 	#state: IStateManager;
 	#module: ViewModule;
-	#node: ICustomElement;
+	#node: IComponent;
 
-	constructor(config: ElementDefinition, contextDefinition: StateDefinition, getModule: GetViewModuleHandler, params?: ViewParams) {
+	constructor(config: Template, contextDefinition: StateDefinition, getModule: InitViewModuleCallback, params?: ViewParams) {
 		this.#module = getModule(this);
 		this.#state = new StateManager(contextDefinition);
 		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
@@ -40,7 +40,7 @@ export default class View implements IView {
 		return (this.#node).elements;
 	}
 
-	get node(): ICustomElement {
+	get node(): IComponent {
 		return this.#node;
 	}
 

@@ -1,0 +1,19 @@
+@import '~@spectrum-css/fieldlabel/dist/index-vars';
+
+uimo-field-label {
+  &  > label {
+    @extend.spectrum-FieldLabel;
+  }
+
+  &.size-small > label {
+    @extend .spectrum-FieldLabel--sizeS;
+  }
+  
+  &.size-medium > label {
+    @extend .spectrum-FieldLabel--sizeM;
+  }
+  
+  &.size-large > label {
+    @extend .spectrum-FieldLabel--sizeL;
+  }
+}
