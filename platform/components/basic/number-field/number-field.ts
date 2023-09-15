@@ -15,14 +15,14 @@ export default class NumberField extends Component<INumberFieldComponent>(specif
 					return `size-${this.props.size}`;}
 			},
 			children: [{
-				tagName: '@fieldlabel',
+				tagName: 'field-label',
 				props: {
 					value: this.props.label,
 					size: this.props.size,
 					for: inputId
 				}
 			},{
-				tagName: '@numberinput',
+				tagName: 'number-input',
 				props: {
 					inputId,
 					size: this.props.size

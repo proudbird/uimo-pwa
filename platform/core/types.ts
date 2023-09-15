@@ -170,13 +170,13 @@ export type ComponentDescription = {
 	data?: DataAttributeValue;
 };
 
-export type ComponentDefinition<D extends ComponentSpecification = { props: {} }, C extends ComponentDescription = {}> = {
+export type ComponentDefinition<D extends ComponentSpecification, C extends ComponentDescription = {}> = {
 	props: ComponentProps<D> & C['props'];
-	state: C['state'];
-	data: C['data'];
+	state?: C['state'];
+	data?: C['data'];
 };
 
-export type ComponentPropsFromDefinition<T extends ComponentDefinition> = {
+export type ComponentPropsFromDefinition<T extends ComponentDefinition<any>> = {
   [K in keyof T['props']]?: T['props'][K];
 }
 

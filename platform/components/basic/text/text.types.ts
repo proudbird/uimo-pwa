@@ -4,6 +4,10 @@ import { ComponentDefinition } from '@/core/types';
 import specification from './text.desc';
 
 export { specification };
-export interface ITextComponent extends ComponentDefinition<typeof specification, {
+
+export type ExtraProps = { 
+  props: {},
   data: string;
-}> {};
+};
+
+export interface ITextComponent extends ComponentDefinition<typeof specification, ExtraProps> {};

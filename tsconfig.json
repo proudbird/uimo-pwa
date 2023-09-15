@@ -20,8 +20,8 @@
     "experimentalDecorators": true,
     "noEmitOnError": false,
     "noEmit": false,
-    
     "jsx": "preserve",
+    "outDir": "./dist",
     "paths": {
       "./*": ["./platform/*"],
       "@/*": ["./platform/*"],
@@ -29,8 +29,7 @@
     }
   },
   "include": [
-    "platform",
-    "app"
-  ],
+    "platform"
+, "types.d.ts"  ],
   "exclude": ["controller"]
 }

@@ -1,27 +1,38 @@
 
 import { JSXElement } from './platform/types/jsx';
 
-import { 
+import {
   IBoxComponent,
   IButtonComponent,
-  ITextFieldComponent,
   INumberFieldComponent,
   ITableComponent,
   ITableFieldComponent,
   ITextComponent,
+  ITextFieldComponent,
   IViewComponent
 } from './platform/components/types';
 
+import { 
+  BoxComponent,
+  ButtonComponent,
+  NumberFieldComponent,
+  TableComponent,
+  TableFieldComponent,
+  TextComponent,
+  TextFieldComponent,
+  ViewComponent
+} from './platform/types/components';
+
 declare namespace JSX {
   interface IntrinsicElements {
-    'view': JSXElement<IViewComponent>;
-    'button': JSXElement<IButtonComponent>;
-    'box': JSXElement<IBoxComponent>;
-    'text': JSXElement<ITextComponent>;
-    'text-field': JSXElement<ITextFieldComponent>;
-    'number-field': JSXElement<INumberFieldComponent>;
-    'table': JSXElement<ITableComponent>;
-    'table-field': JSXElement<ITableFieldComponent>;
+    'view': JSXElement<ViewComponent>;
+    'button': JSXElement<ButtonComponent>;
+    'box': JSXElement<BoxComponent>;
+    'text': JSXElement<TextComponent>;
+    'text-field': JSXElement<TextFieldComponent>;
+    'number-field': JSXElement<NumberFieldComponent>;
+    'table': JSXElement<TableComponent>;
+    'table-field': JSXElement<TableFieldComponent>;
     'slot:fields': any;
     'slot:context-menu': any;
     'slot:tooltip': any;

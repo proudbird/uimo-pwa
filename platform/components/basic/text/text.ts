@@ -1,5 +1,6 @@
 import { Component, DefineComponent } from '@/core';
 import { Template } from '@/core/types';
+import { DataAttribute } from '@/core/data';
 
 import { specification, ITextComponent } from './text.types';
 
@@ -9,7 +10,7 @@ export default class Text extends Component<ITextComponent>(specification) {
 		return {
 			...this.config, 
 			props: {
-				innerHTML: this.data
+				innerHTML: this.config.data as DataAttribute
 			},
 		};
 	}
