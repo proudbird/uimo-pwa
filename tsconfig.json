@@ -29,7 +29,8 @@
     }
   },
   "include": [
-    "platform"
-, "types.d.ts"  ],
+    "platform", 
+    "types.d.ts"
+  ],
   "exclude": ["controller"]
 }
