@@ -52,10 +52,10 @@ export class StateManager extends StateManagerBase {
 			const value = attrOptions.initValue;
 			if(value?.DataAttribute) {
 				attr = value;	
-			} else if(typeof value === 'object' && (value as PropHandlerDefinition).handler) {
+			} else if(typeof value === 'object' && (value as PropHandlerDefinition)?.handler) {
 				// TODO: how to handle such cases???
 				throw new StateError(`State attribute can't be defined from handler'`);
-			} else if(typeof value === 'object' && (value as PropDataSourceDefinition).path) {
+			} else if(typeof value === 'object' && (value as PropDataSourceDefinition)?.path) {
 				attr = (context || {} as IStateManager)[value.path];
 				if(!attr) {
 					throw new StateError(`Context doesn't have attribute '${value.path}'`);

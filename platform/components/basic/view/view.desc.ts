@@ -1,3 +1,5 @@
 export default {
-	props: {}
+	props: {
+		title: { type: 'string' },
+	}
 } as const;

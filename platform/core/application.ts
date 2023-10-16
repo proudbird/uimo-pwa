@@ -44,8 +44,10 @@ export default class Application {
     return this.#viewFrame || this.#appFrame!;
   }
 
-  async showView(viewId: string, params?: any) {
-    await loadModule(`view/${viewId}`);
+  async showView(viewId: string, params?: any, target: 'app-frame' | 'view-frame' = 'view-frame') {
+    if(!window.views[viewId]) {
+      await loadModule(`view/${viewId}`);
+    }
 
     const viewDefinition = window.views[viewId];
 
@@ -58,9 +60,30 @@ export default class Application {
       return errorContainer;
     }
 
-    const { layout, data, getModule } = viewDefinition;
-    const view = new View(layout, data, getModule, params);
-    this.viewFrame.showView(view);
+    const { layout, data, style, getModule } = viewDefinition;
+
+    if(style) {
+      let styleElement = document.getElementById(`style-${viewId}`);
+      if(!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = `style-${viewId}`;
+        document.head.appendChild(styleElement);
+      }
+      styleElement.innerHTML = style;
+    }
+
+    const view = new View(viewId, layout, data, getModule, params);
+    // TODO: we need change the way of creating view, because now 
+    // every time we want show a view we create a new instance of it,
+    // even if it is in memory already
+
+    if(target === 'view-frame') {
+      this.viewFrame.showView(view);
+    } else {
+      this.appFrame.showView(view);
+    }
+
+    return view;
   }
 
   async getSession(login: string, password: string) {

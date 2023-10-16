@@ -11,6 +11,7 @@ export interface DynamicListAttributeOptions {
 	className: string;
 	object: string;
 	limit?: number;
+	fields?: string;
 }
 
 export type DataProviderAttribute = {
@@ -34,17 +35,19 @@ export default class DynamicListAttribute extends DataAttributeBase {
 	#object: string;
 	#limit: number;
 	#offset: number = 0;
+	#fields: string;
 	#pageIndex: number = 0;
 	#provider: DynamicListProvider = {} as DynamicListProvider;
 	#data: any[] = [];
 
-	constructor({ cube, className, object, limit = 50 }: DynamicListAttributeOptions) {
+	constructor({ cube, className, object, fields = '', limit = 50 }: DynamicListAttributeOptions) {
 		super();
 
 		this.#cube = cube;
 		this.#className = className;
 		this.#object = object;
 		this.#limit = limit;
+		this.#fields = fields;
 
 		this.#fetchData(this.#onDataLoad.bind(this));
 	}
@@ -63,6 +66,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 				options: {
 					limit: this.#limit,
 					offset: this.#offset,
+					fields: this.#fields,
 				}
 			})
 		});
@@ -126,7 +130,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 				};
 			}
 
-			definition[attrName] = { type: attrType, initValue };
+			definition[attrName] = { type: attrType.toLocaleLowerCase(), initValue };
 		}
 
 		return (new StateManager(definition)) as IStateManager;

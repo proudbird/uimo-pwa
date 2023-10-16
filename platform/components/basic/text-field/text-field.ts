@@ -27,7 +27,7 @@ export default class TextField extends Component<ITextFieldComponent>(specificat
 					inputId,
 					size: this.props.size
 				},
-				data: this.config.data,
+				data: this.data,
 			}]
 		};
 	}

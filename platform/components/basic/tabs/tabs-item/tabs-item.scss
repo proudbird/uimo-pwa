@@ -1,0 +1,18 @@
+@import '~@spectrum-css/tabs/dist/index-vars';
+
+uimo-tabs-item {
+  @extend .spectrum-Tabs-item;
+
+  grid-area: items;
+  display: flex;
+
+  
+
+  & .label {
+    @extend .spectrum-Tabs-itemLabel;
+  }
+
+  &.is-selected {
+    color: var( --highcontrast-tabs-color-selected, var(--mod-tabs-color-selected, var(--spectrum-tabs-color-selected)) );
+  }
+}

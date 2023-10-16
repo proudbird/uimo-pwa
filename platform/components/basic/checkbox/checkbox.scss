@@ -1,0 +1,19 @@
+@import '~@spectrum-css/checkbox/dist/index-vars';
+
+uimo-checkbox {
+  @extend .spectrum-Checkbox;
+
+  display: block;
+
+  &.size-small {
+    @extend .spectrum-Checkbox--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-Checkbox--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-Checkbox--sizeL;
+  }
+}

@@ -301,6 +301,38 @@ function default_1() {
             }
             return (core_1.types.callExpression(state.addHelper('extends'), objects));
         };
+        const JSXAlias = nodes => {
+            let result = null;
+            const objects = [];
+            nodes.forEach(node => {
+                switch (node.type) {
+                    case 'JSXAttribute': {
+                        if (node.name.name !== 'alias') {
+                            break;
+                        }
+                        const objectKey = core_1.types.identifier(node.name.name);
+                        result = core_1.types.assignmentExpression('=', objectKey, JSXAttributeValue(node.value));
+                    }
+                }
+            });
+            return result;
+        };
+        const JSXClassName = nodes => {
+            let result = null;
+            const objects = [];
+            nodes.forEach(node => {
+                switch (node.type) {
+                    case 'JSXAttribute': {
+                        if (node.name.name !== 'className') {
+                            break;
+                        }
+                        const objectKey = core_1.types.identifier(node.name.name);
+                        result = core_1.types.assignmentExpression('=', objectKey, JSXAttributeValue(node.value));
+                    }
+                }
+            });
+            return result;
+        };
         const JSXText = node => {
             if (state.opts.noTrim)
                 return core_1.types.stringLiteral(node.value);
@@ -315,11 +347,19 @@ function default_1() {
             else {
                 properties.push(core_1.types.objectProperty(core_1.types.identifier(nameProperty), JSXElementName(node.openingElement.name)), core_1.types.objectProperty(core_1.types.identifier('type'), core_1.types.stringLiteral('element')));
             }
+            const alias = JSXAlias(node.openingElement.attributes);
+            const className = JSXClassName(node.openingElement.attributes);
             const attributes = JSXAttributes(node.openingElement.attributes);
             const props = JSXProps(node.openingElement.attributes);
             const events = JSXEvents(node.openingElement.attributes);
             const style = JSXStyle(node.openingElement.attributes);
             const data = JSXData(node.openingElement.attributes);
+            if (alias) {
+                properties.push(core_1.types.objectProperty(core_1.types.identifier('alias'), alias));
+            }
+            if (className) {
+                properties.push(core_1.types.objectProperty(core_1.types.identifier('className'), className));
+            }
             if (attributes.properties.length > 0) {
                 properties.push(core_1.types.objectProperty(core_1.types.identifier('attributes'), attributes));
             }

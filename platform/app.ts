@@ -15,6 +15,13 @@ export async function loadApp(root: HTMLElement): Promise<void> {
 
 export async function defineApp(): Promise<HTMLElement | undefined> {
 
+	const { layout, data, getModule } = appFrame;
+
+	//@ts-ignore
+	const view = new View('app-frame', layout, data, getModule);
+
+	window.Application.appFrame = view;
+
 	const response = await fetch(`${location.pathname}/init/`, {
 		method: 'POST',
 		headers: {
@@ -46,27 +53,6 @@ export async function defineApp(): Promise<HTMLElement | undefined> {
 			await module.onStart();
 		}
 	}
-
-	const { layout, data, getModule } = appFrame;
-
-	// await loadModule('/app/index/view/Admin.Views.register');
-
-	// const viewDefinition = window.views['Admin.Views.register'];
-
-	// if(viewDefinition.error) {
-	// 	const errorContainer = document.createElement('div');
-	// 	errorContainer.innerHTML = `
-	// 		<h1>Error</h1>
-	// 		<p>${viewDefinition.error}</p>
-	// 	`;
-	// 	return errorContainer;
-	// }
-
-	// const { layout, data, getModule } = viewDefinition;
-	//@ts-ignore
-	const view = new View(layout, data, getModule);
-
-	window.Application.appFrame = view;
 
 	return view.node;
 }

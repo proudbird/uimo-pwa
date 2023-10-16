@@ -16,11 +16,13 @@ type ViewParams = {
 }
 
 export default class View implements IView {
+	#id: string;
 	#state: IStateManager;
 	#module: ViewModule;
 	#node: IComponent;
 
-	constructor(config: Template, contextDefinition: StateDefinition, getModule: InitViewModuleCallback, params?: ViewParams) {
+	constructor(id: string, config: Template, contextDefinition: StateDefinition, getModule: InitViewModuleCallback, params?: ViewParams) {
+		this.#id = id;
 		this.#module = getModule(this);
 		this.#state = new StateManager(contextDefinition);
 		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
@@ -36,12 +38,20 @@ export default class View implements IView {
 		this.#module.onMounted && this.#module.onMounted.apply(this);
 	}
 
+	get id(): string {
+		return this.#id;
+	}
+	
 	get elements() {
 		return (this.#node).elements;
 	}
 
 	get node(): IComponent {
 		return this.#node;
+	}
+
+	get module(): ViewModule {
+		return this.#module;
 	}
 
 	get state(): IState {

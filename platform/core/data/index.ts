@@ -47,31 +47,47 @@ export type DataAttributeMap<T> =
 	T extends DynamicList ? DynamicListAttribute :
 	DataAttribute;
 
-  type WithDynamicProperties = {
-    [key: string]: IDataAttribute | any;
-  }
+type WithDynamicProperties = {
+  [key: string]: IDataAttribute | any;
+}
   
-  export interface IStateManager extends WithDynamicProperties {
-    getData(): IState;
-    merge(source: IStateManager | IStateManager[]): IStateManager;
-  }
-  
-  export interface IState {
-    [key: string]: DataAttributeValue | any;
-    addAttribute(attributeName: string, attribute: DataAttribute): void;
-  }
-  
-  export type StateValues = Record<string, DataAttributeValue>;
+export interface IStateManager extends WithDynamicProperties {
+  getData(): IState;
+  merge(source: IStateManager | IStateManager[]): IStateManager;
+}
 
-  export type StateManagerAttributes<T extends StateValues = any> = {
-    [property in keyof T]: DataAttributeMap<T[property]>;
-  }
-  
-  export type StateDefinition = Record<string, { 
-    type: string, 
-    defaultValue?: any, // TODO: we need to leave only one of these
-    initValue?: any,  
-    link?: any 
-  }>;
+export interface IState {
+  [key: string]: DataAttributeValue | any;
+  addAttribute(attributeName: string, attribute: DataAttribute): void;
+}
 
-  export type DataAttributeSetter = (value: any) => void;
+export type StateValues = Record<string, DataAttributeValue>;
+
+export type StateManagerAttributes<T extends StateValues = any> = {
+  [property in keyof T]: DataAttributeMap<T[property]>;
+}
+
+export type StateDefinition = Record<string, { 
+  type: string, 
+  defaultValue?: any, // TODO: we need to leave only one of these
+  initValue?: any,  
+  link?: any 
+}>;
+
+export type DataAttributeSetter = (value: any) => void;
+
+export type PolyDataAttributeChangeEventType = 'add' | 'remove' | 'sort';
+
+export type PolyDataAttributeChangeOptions<T> = {
+	initiator: DataAttribute;
+	collection: any;
+  item: any;
+	event: PolyDataAttributeChangeEventType;
+};
+
+export interface IPolyDataAttributeEvent {
+  initiator: DataAttribute;
+  collection: any;
+  item: any;
+  event: PolyDataAttributeChangeEventType;
+}

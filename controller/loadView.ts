@@ -54,7 +54,7 @@ export default async function loadView(
 
 		try {
 			// Load the view definition, data, and module.
-			const { layout, data, module } = await getViewDefinitions(
+			const { layout, data, module, style } = await getViewDefinitions(
 				pathToCubes,
 				relativeModuleFilePath,
 				viewName
@@ -66,7 +66,7 @@ export default async function loadView(
 			// Generate the result string with the view module code, layout, and data.
 			const result = `(() => { const module = {}; window.views["${viewId}"] = { layout: ${JSON.stringify(
 				layout
-			)}, data: ${JSON.stringify(data)}, getModule: (View) => { ((exports, View, ${globalsNames}) => { ${
+			)}, data: ${JSON.stringify(data)}, style: "${style}", getModule: (View) => { ((exports, View, ${globalsNames}) => { ${
 				module.code
 			} })(module, View, ...defineGlobals(${JSON.stringify(globals)})); return module }};})();//# sourceMappingURL=${viewId}.js.map`;
 
@@ -93,10 +93,11 @@ async function getViewDefinitions(
 	pathToCubes: string,
 	relativeModuleFilePath: string,
 	viewName: string
-): Promise<{ layout: any; data: any; module: ViewModule }> {
+): Promise<{ layout: any; data: any; module: ViewModule, style: string }> {
 	let layout: any;
 	let data: any;
 	let module: ViewModule;
+	let style: string;
 
 	try {
 		layout = await getViewConfig('layout', resolvePath(pathToCubes, relativeModuleFilePath), viewName);
@@ -119,7 +120,13 @@ async function getViewDefinitions(
 		throw new Error(`Can not get view module file for ${viewName}: ${(error as Error).message}`);
 	}
 
-	return { layout, data, module };
+	try {
+		style = getStyle(resolvePath(pathToCubes, relativeModuleFilePath), viewName);
+	} catch (error) {
+		throw new Error(`Can not get style file for ${viewName}: ${(error as Error).message}`);
+	}
+
+	return { layout, data, module, style };
 }
 
 /**
@@ -135,14 +142,14 @@ async function getViewConfig(
 	pathToView: string,
 	viewName: string
 ): Promise<any> {
-	const fileId = type === 'layout' ? 'layout' : 'data';
+	const fileId = type;
 	const loaders: { [key: string]: (filePath: string) => any } = {
 		json: require,
 		yml: loadYmlFile,
 		yaml: loadYmlFile,
 		js: require,
 		ts: loadTsFile,
-		tsx: loadTsFile,
+		tsx: loadTsFile
 	};
 
 	for (const [extension, loader] of Object.entries(loaders)) {
@@ -290,4 +297,19 @@ export async function loadModuleTsFile(filePath: string, fileAlias: string): Pro
  */
 function errorMark(viewId: string, errorMessage: string): string {
 	return `(() => { window.views["${viewId}"] = { error: "${errorMessage}" }; })();`;
+}
+function getStyle(pathToView: string, viewName: string): string {
+	const filePath = resolvePath(pathToView, `${viewName}.css`);
+	if (existsSync(filePath)) {
+		let result = '';
+		try {
+			const content = readFileSync(filePath, 'utf-8');
+			result = content.replace(/(\r\n|\n|\r|\t)/gm, ' ').replace(/(\s\s)/gm, ' ').replace(/"/g, '\\"');
+			return result;
+		} catch (error) {
+			throw new Error(`Can not read view style file ${filePath}`);
+		}
+	} else {
+		return '';
+	}
 }

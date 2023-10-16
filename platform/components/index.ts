@@ -1,20 +1,25 @@
-export { default as View } from './basic/view';
-export { default as Box } from './basic/box';
-
-export { default as Button } from './basic/button';
-export { default as Text } from './basic/text';
-export { default as ProgressBar } from './basic/progress-bar';
-
-export { default as Label } from './basic/label';
-export { default as TextInput } from './basic/text-input';
-export { default as NumberInput } from './basic/number-input';
-
-export { default as FieldLabel } from './basic/field-label';
-export { default as TextField } from './basic/text-field';
-export { default as NumberField } from './basic/number-field';
-
-export { default as Table } from './basic/table';
+export { TableField } from './basic/table';
 export { TableHeader } from './basic/table';
 export { TableHeaderCell } from './basic/table';
 export { TableRow } from './basic/table';
-export { TableField } from './basic/table';
+export { default as Box } from './basic/box';
+export { default as Button } from './basic/button';
+export { default as Checkbox } from './basic/checkbox';
+export { default as FieldLabel } from './basic/field-label';
+export { default as Icon } from './basic/icon';
+export { default as Label } from './basic/label';
+export { default as Menu } from './basic/menu';
+export { default as MenuItem } from './basic/menu/menu-item';
+export { default as NumberField } from './basic/number-field';
+export { default as NumberInput } from './basic/number-input';
+export { default as ProgressBar } from './basic/progress-bar';
+export { default as Table } from './basic/table';
+export { default as Tabs } from './basic/tabs';
+export { default as TabsBody } from './basic/tabs/tabs-body';
+export { default as TabsItem } from './basic/tabs/tabs-item';
+export { default as TabsItems } from './basic/tabs/tabs-items';
+export { default as Text } from './basic/text';
+export { default as TextField } from './basic/text-field';
+export { default as TextInput } from './basic/text-input';
+export { default as View } from './basic/view';
+export { default as WorkPanel } from './basic/work-panel';

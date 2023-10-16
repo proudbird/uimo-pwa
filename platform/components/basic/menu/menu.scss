@@ -1,0 +1,9 @@
+@import '~@spectrum-css/menu/dist/index-vars';
+
+uimo-menu {
+  @extend .spectrum-Menu;
+
+  &:hidden {
+    display: none;
+  }
+}

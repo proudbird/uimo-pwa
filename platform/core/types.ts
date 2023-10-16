@@ -1,5 +1,5 @@
 import { ElementEvents } from "../types/dom";
-import { DataAttribute, DataAttributeValue, IPolyDataAttribute, IState, IStateManager, StateDefinition, StateManagerAttributes, StateValues } from "./data";
+import { DataAttribute, DataAttributeValue, IPolyDataAttribute, IPolyDataAttributeEvent, IState, IStateManager, StateDefinition, StateManagerAttributes, StateValues } from "./data";
 
 /**
  * Component Specification
@@ -123,13 +123,16 @@ export interface IComponent extends HTMLElement {
   $scope: IStateManager;
   props: ComponentProps<any>;
   context: IState;
+  data: DataAttribute;
   elements: Record<string, IComponent>;
   owner: IView;
   render(): Template;
   observe(observable: DataAttribute | IPolyDataAttribute, callback: EventListenerOrEventListenerObject): void;
-  addElement(config: ChildTemplate, options: ElementOptions): DOMElement;
+  on(event: string, callback: EventListener | string): void;
+  addElement(config: ChildTemplate, options?: ElementOptions): DOMElement;
   addElements(elements: ChildTemplate | ChildTemplate[]): void;
   onDataLoad(data: IPolyDataAttribute): void;
+  onDataChanged(event: IPolyDataAttributeEvent): void;
 }
 
 export type ComponentOptions = {
@@ -195,9 +198,11 @@ export type ViewModule = ViewModuleMethods & {
 };
 
 export interface IView {
+  id: string;
 	elements: Record<string, IComponent>;
 	node: IComponent;
 	state: IState;
+	module: ViewModule;
 	showView(view: IView): void;
 }
 

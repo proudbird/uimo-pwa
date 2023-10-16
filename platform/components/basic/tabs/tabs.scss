@@ -1,0 +1,50 @@
+@import '~@spectrum-css/tabs/dist/index-vars';
+
+uimo-tabs {
+  @extend .spectrum-Tabs;
+
+  
+  &.horizontal {
+    @extend .spectrum-Tabs--horizontal;
+    
+    display: grid;
+    grid-template-areas: 
+    'items'
+    'body';
+    grid-template-rows: auto 1fr;
+    width: 100%;
+
+    & uimo-tabs-items {
+      flex-direction: row;
+    }
+  }
+  
+  &.vertical {
+    @extend .spectrum-Tabs--vertical;
+    
+    display: grid;
+    grid-template-areas: 'items body';
+
+    & uimo-tabs-items {
+      flex-direction: column;
+    }
+  }
+
+  & .indicator {
+    @extend .spectrum-Tabs-selectionIndicator;
+
+    transition: all .2s ease-in-out;
+  }
+
+  & uimo-tabs-item {
+    block-size: var(--mod-tabs-item-height, var(--spectrum-tabs-item-height));
+    line-height: var(--mod-tabs-item-height, var(--spectrum-tabs-item-height));
+    padding-block-end: var(--mod-tabs-item-vertical-spacing, var(--spectrum-tabs-item-vertical-spacing));
+    padding-inline-start: var(--mod-tabs-start-to-edge, var(--spectrum-tabs-start-to-edge));
+    padding-inline-end: var(--mod-tabs-start-to-edge, var(--spectrum-tabs-start-to-edge));
+  }
+  
+  &.vertical uimo-tabs-item {
+    margin-inline-start: var(--mod-tabs-divider-size, var(--spectrum-tabs-divider-size));
+  }
+}

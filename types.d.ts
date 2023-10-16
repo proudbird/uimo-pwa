@@ -1,25 +1,22 @@
 
 import { JSXElement } from './platform/types/jsx';
 
-import {
-  IBoxComponent,
-  IButtonComponent,
-  INumberFieldComponent,
-  ITableComponent,
-  ITableFieldComponent,
-  ITextComponent,
-  ITextFieldComponent,
-  IViewComponent
-} from './platform/components/types';
-
 import { 
   BoxComponent,
   ButtonComponent,
+  CheckboxFieldComponent,
+  IconComponent,
+  LabelComponent,
+  MenuComponent,
+  MenuItemComponent,
   NumberFieldComponent,
   TableComponent,
   TableFieldComponent,
+  TabsComponent,
+  TabsItemComponent,
   TextComponent,
   TextFieldComponent,
+  WorkPanelComponent,
   ViewComponent
 } from './platform/types/components';
 
@@ -28,14 +25,23 @@ declare namespace JSX {
     'view': JSXElement<ViewComponent>;
     'button': JSXElement<ButtonComponent>;
     'box': JSXElement<BoxComponent>;
+    'checkbox': JSXElement<CheckboxFieldComponent>;
     'text': JSXElement<TextComponent>;
     'text-field': JSXElement<TextFieldComponent>;
     'number-field': JSXElement<NumberFieldComponent>;
+    'icon': JSXElement<IconComponent>;
+    'label': JSXElement<LabelComponent>;
     'table': JSXElement<TableComponent>;
     'table-field': JSXElement<TableFieldComponent>;
-    'slot:fields': any;
-    'slot:context-menu': any;
-    'slot:tooltip': any;
+    'tabs': JSXElement<TabsComponent>;
+    'tabs-item': JSXElement<TabsItemComponent>;
+    'menu': JSXElement<MenuComponent>;
+    'menu-item': JSXElement<MenuItemComponent>;
+    'work-panel': JSXElement<WorkPanelComponent>;
+    'slot:fields': JSXElement<{}>;
+    'slot:context-menu': JSXElement<{}>;
+    'slot:tooltip': JSXElement<{}>;
+    'slot:body': JSXElement<{}>;
   }
 }
 

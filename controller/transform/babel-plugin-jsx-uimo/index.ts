@@ -397,6 +397,50 @@ export default function () {
       )
     }
 
+    const JSXAlias = nodes => {
+      let result = null as any
+      const objects = [] as any
+
+      nodes.forEach(node => {
+        switch (node.type) {
+          case 'JSXAttribute': {
+
+            if (node.name.name !== 'alias') {
+              break
+            }
+
+            const objectKey = t.identifier(node.name.name)
+
+            result =  t.assignmentExpression('=', objectKey, JSXAttributeValue(node.value));
+          }
+        }
+      })
+
+      return result;
+    }
+
+    const JSXClassName = nodes => {
+      let result = null as any
+      const objects = [] as any
+
+      nodes.forEach(node => {
+        switch (node.type) {
+          case 'JSXAttribute': {
+
+            if (node.name.name !== 'className') {
+              break
+            }
+
+            const objectKey = t.identifier(node.name.name)
+
+            result =  t.assignmentExpression('=', objectKey, JSXAttributeValue(node.value));
+          }
+        }
+      })
+
+      return result;
+    }
+
     const JSXText = node => {
       if (state.opts.noTrim) return t.stringLiteral(node.value)
       const value = node.value.replace(/\n\s*/g, '')
@@ -418,12 +462,20 @@ export default function () {
         );
       }
 
+      const alias = JSXAlias(node.openingElement.attributes);
+      const className = JSXClassName(node.openingElement.attributes);
       const attributes = JSXAttributes(node.openingElement.attributes);
       const props = JSXProps(node.openingElement.attributes);
       const events = JSXEvents(node.openingElement.attributes);
       const style = JSXStyle(node.openingElement.attributes);
       const data = JSXData(node.openingElement.attributes);
   
+      if(alias) {
+        properties.push(t.objectProperty(t.identifier('alias'), alias));
+      }
+      if(className) {
+        properties.push(t.objectProperty(t.identifier('className'), className));
+      }
       if(attributes.properties.length > 0) {
         properties.push(t.objectProperty(t.identifier('attributes'), attributes));
       }

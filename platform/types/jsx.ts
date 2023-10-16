@@ -18,6 +18,9 @@ export type JSXElementEvents<T extends HTMLElement = HTMLElement> = {
 export type JSXElementDataSource = {
   'd:path'?: string;
   'd:source'?: DataSourceType;
+  'id'? : string;
+  'alias'? : string;
+  'className'? : string;
 }
 
 export type JSXElement<T extends ComponentDefinition<any>, K extends HTMLElement = HTMLElement> = 

@@ -1,0 +1,17 @@
+uimo-work-panel {
+  display: flex;
+  width: 100%;
+
+  & .title-row {
+    display: flex;
+    flex-direction: row;
+
+    & .close-button {
+      font-size: 16px;
+    }
+  }
+
+  & uimo-view {
+    padding: 1rem;
+  }
+}

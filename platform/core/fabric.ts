@@ -26,7 +26,10 @@ export function setObservation(element: IComponent, prop: PropDefinition, data: 
 		prop = prop as PropDataSourceDefinition;
 		let dataProvider = data;
 		const attr = dataProvider[prop.path];
-		if((attr as IPolyDataAttribute).isIterable) { 
+		if(!attr) {
+			throw new Error(`Can't find path ${prop.path} in data provider`);
+		}
+		if((attr as IPolyDataAttribute)?.isIterable) { 
 			element.observe(attr, () => element.onDataLoad && element.onDataLoad(attr));
 		} else {
 			setter && setter(attr.value);
@@ -151,9 +154,7 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 			element.innerHTML = config.children;
 		} else {
 			for(const childConfig of config.children) {
-				console.log(childConfig);
 				if(typeof childConfig === 'string') {
-					console.log(childConfig);
 					element.innerHTML = childConfig;
 					continue;
 				}

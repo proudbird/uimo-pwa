@@ -28,10 +28,10 @@ import {
 	Template,
 	ViewModule
 } from './types';
-import { DataAttributeSetter, IPolyDataAttribute } from './data';
+import { DataAttributeSetter, IPolyDataAttribute, IPolyDataAttributeEvent } from './data';
 
 type Observation = {
-  observable: DataAttribute,
+  observable: EventTarget,
   callback: EventListenerOrEventListenerObject
 }
 
@@ -68,10 +68,13 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 		#data: DataAttribute | IPolyDataAttribute = {} as DataAttribute;
   
 		#observables: Array<Observation> = [];
+		#eventObservables: Record<string, Array<Observation>> = {};
   
 		public get isCustom(): true {
 			return true;
 		}
+
+		static scopeName: string;
   
 		constructor({ owner, parent, config, context, stateDefinition, module }: ComponentOptions) {
 			super();
@@ -79,7 +82,7 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 			this.#config = config;
 			this.#id = this.#config.id || genId();
 			this.#state = new StateManager(stateDefinition);
-			this.#scope = this.#parent.config.scope === this.config.scope ? (new StateManager()).merge([this.#parent.$scope, this.#parent.$state]) : new StateManager();
+			this.#scope = (this.#parent.constructor as typeof Base).scopeName === (this.constructor as typeof Base).scopeName ? (new StateManager()).merge([this.#parent.$scope, this.#parent.$state]) : new StateManager();
 			this.#context = context || new StateManager();
 			this.#props = {} as IState;
 			this.#module = module || {};
@@ -105,7 +108,7 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 				} else {
 					this.#data =  this.#config.data as DataAttribute;
 				}
-				setObservation(this, this.#config.data!, this.#context);
+				setObservation(this, this.#data, this.#context);
 			}
   
 			this.#build();
@@ -116,6 +119,14 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 				observable.removeEventListener('change', callback);
 			}
 			this.#observables = [];
+
+			for(const eventName in this.#eventObservables) {
+				for(let { observable, callback } of this.#eventObservables[eventName]) {
+					observable.removeEventListener(eventName, callback);
+				}
+			}
+
+			this.#eventObservables = {};
 		}
   
 		public observe(observable: DataAttribute, callback: EventListenerOrEventListenerObject): void {
@@ -126,7 +137,32 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 			});
 		}
 
+		public on(event: string, callback: EventListener | string): void {
+			const listener = (e: Event) => {
+				if(typeof callback === 'string') {
+					const handler = this.#module[callback as keyof Base] as EventHandler;
+					if(handler) {
+						handler.call(this.#owner, e);
+					} else {
+						throw new Error(`Element doesn't have a function ${callback}`);
+					}
+				} else if(typeof callback === 'function') {
+					callback.call(this, e);
+				} else {
+					throw new Error(`Wrong object was defined as event handler. Only 'string' or 'function' are allowed. Type '${typeof callback}' was provided.`);
+				}
+			};
+
+			this.addEventListener(event, listener);
+			this.#eventObservables[event] = this.#eventObservables[event] || [];
+			this.#eventObservables[event].push({
+				observable: this,
+				callback: listener
+			});
+		}
+
 		onDataLoad(data: IPolyDataAttribute): void {}
+		onDataChanged(event: IPolyDataAttributeEvent): void {};
   
 		/**
 		 * Defines element configuration to be rendered
@@ -137,6 +173,7 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
   
 		#build(): void {
 			const template = this.render();
+			// this.#config = template;
       
 			this.setAttribute('id', this.#id);
 			template.alias && this.setAttribute('alias', template.alias as string); 
@@ -189,21 +226,8 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 				});
 			}
   
-			Object.entries(template.events || {}).map(([name, event]) => {
-				this.addEventListener(name, (e) => {
-					if(typeof event === 'string') {
-						const handler = this.#module[event as keyof Base] as EventHandler;
-						if(handler) {
-							handler.call(this.#owner, e);
-						} else {
-							throw new Error(`Element doesn't have a function ${event}`);
-						}
-					} else if(typeof event === 'function') {
-						event.call(this, e);
-					} else {
-						throw new Error(`Wrong object was defined as event handler. Only 'string' or 'function' are allowed. Type '${typeof event}' was provided.`);
-					}
-				});
+			Object.entries(template.events || {}).map(([event, callback]) => {
+				this.on(event, callback);
 			});
   
 			if(template.children) {
