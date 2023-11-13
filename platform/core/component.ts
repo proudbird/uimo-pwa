@@ -1,3 +1,4 @@
+import get from 'lodash.get';
 
 import { buildElement, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
@@ -28,7 +29,9 @@ import {
 	Template,
 	ViewModule
 } from './types';
-import { DataAttributeSetter, IPolyDataAttribute, IPolyDataAttributeEvent } from './data';
+import { DataAttributeSetter, IMonoDataAttribute, IPolyDataAttribute, IPolyDataAttributeEvent } from './data';
+import UnknownAttribute from './data/attribute/unknown';
+import { DataAttributeChangeEvent } from './data/events';
 
 type Observation = {
   observable: EventTarget,
@@ -52,7 +55,7 @@ export function DefineComponent(tagName: string) {
 	};
 }
 
-export function componentFabric<D extends ComponentDefinition<any, any>>(description: D): ExtendedComponent<D> {
+export function componentFabric<T extends ComponentDefinition<any, any>, D extends DataAttribute = DataAttribute>(description: T): ExtendedComponent<T> {
 	class Base extends HTMLElement implements IComponent {
 		#id: string;
 		#config: Template = {} as Template;
@@ -60,12 +63,12 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 		#state: IStateManager;
 		#scope: IStateManager;
 		#props: IState;
-		#propsManager: PropertyManager<D>;
+		#propsManager: PropertyManager<T>;
 		#module: ViewModule;
 		#elements: Record<string, IComponent> = {};
 		#parent: IComponent;
 		#owner: IView;
-		#data: DataAttribute | IPolyDataAttribute = {} as DataAttribute;
+		#data: D = {} as D;
   
 		#observables: Array<Observation> = [];
 		#eventObservables: Record<string, Array<Observation>> = {};
@@ -93,25 +96,27 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 			for(let [propName, prop] of Object.entries(this.#propsManager)) {
 				Object.defineProperty(this, propName, { 
 					get: () => {
-						return this.#propsManager[propName as keyof PropertyManager<D>];
+						return this.#propsManager[propName as keyof PropertyManager<T>];
 					},
 					set: (value: any) => {
-						this.#propsManager[propName as keyof PropertyManager<D>] = value;
+						this.#propsManager[propName as keyof PropertyManager<T>] = value;
 					}
 				});
 			}
 
 			if(this.#config.data) {
 				if(typeof this.#config.data === 'object' && (this.#config.data as PropDataSourceDefinition).path) {
-					//@ts-ignore
-					this.#data =  this.#context[(this.#config.data as ElementPropertyDataSource).path] as DataAttribute;
+					const dataPath = (this.#config.data as PropDataSourceDefinition).path;
+					this.#data =  get(this.#context, dataPath);
 				} else {
-					this.#data =  this.#config.data as DataAttribute;
+					this.#data =  this.#config.data as D;
 				}
 				setObservation(this, this.#data, this.#context);
 			}
   
 			this.#build();
+
+			this.onRender && this.onRender();
 		}
   
 		private disconnectedCallback(): void {
@@ -130,11 +135,39 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 		}
   
 		public observe(observable: DataAttribute, callback: EventListenerOrEventListenerObject): void {
-			observable.addEventListener('change', callback);
-			this.#observables.push({
-				observable,
-				callback 
-			});
+
+			const registerObservation = (observable: DataAttribute, callback: EventListenerOrEventListenerObject) => {
+				this.#observables.push({
+					observable,
+					callback 
+				});
+			}
+
+			if(observable instanceof UnknownAttribute) {
+				const handleObservableSetter = (e: Event) => { 
+					const newTarget = (e as CustomEvent).detail.value;
+					if(this.#config.data = observable) {
+						this.#config.data = newTarget;
+						this.#data = newTarget as D;
+					}
+					newTarget.addEventListener('change', (e: Event) => {
+						callback && (callback as EventListener)(e);
+				});
+					registerObservation(newTarget, callback);
+
+					observable.dispatchEvent(new CustomEvent('destroy', { detail: newTarget }));
+					
+					observable.removeEventListener('initialized', handleObservableSetter);
+
+
+					newTarget.dispatchEvent(new DataAttributeChangeEvent(newTarget, (newTarget as IMonoDataAttribute).value, (newTarget as IMonoDataAttribute).value));
+				}
+
+				observable.addEventListener('initialized', handleObservableSetter);
+			} else {
+				observable.addEventListener('change', callback);
+				registerObservation(observable, callback);
+			}
 		}
 
 		public on(event: string, callback: EventListener | string): void {
@@ -163,6 +196,7 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 
 		onDataLoad(data: IPolyDataAttribute): void {}
 		onDataChanged(event: IPolyDataAttributeEvent): void {};
+		onRender(): void {};
   
 		/**
 		 * Defines element configuration to be rendered
@@ -300,8 +334,8 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 			return this.#config;
 		} 
   
-		public get props(): ComponentProps<D> {
-			return this.#propsManager as ComponentProps<D>;
+		public get props(): ComponentProps<T> {
+			return this.#propsManager as ComponentProps<T>;
 		}  
   
 		public get state(): IState {
@@ -339,7 +373,11 @@ export function componentFabric<D extends ComponentDefinition<any, any>>(descrip
 		public get data() {
 			return this.#data;
 		}
+
+		public get alias(): string | undefined {
+			return this.#config.alias;
+		}
 	}
 
-	return Base as ExtendedComponent<D>;
+	return Base as ExtendedComponent<T>;
 }

@@ -5,6 +5,11 @@ import View from './core/view';
 import loadModule from './core/loadModule';
 
 import appFrame from './components/builtIn/app-frame';
+import { default as ApplicationClass } from './core/application';
+
+declare var Application: ApplicationClass;
+declare var modules: Record<string, any>;
+declare var views: Record<string, any>;
 
 export async function loadApp(root: HTMLElement): Promise<void> {
 	const app = await defineApp();

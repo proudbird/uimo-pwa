@@ -1,8 +1,8 @@
 {
   "name": "uimo-controller",
   "version": "0.0.1",
-  "main": "./controller/build/uimo.js",
-  "types": "./controller/uimo.d.ts",
+  "main": "./build/uimo.js",
+  "types": "./uimo.d.ts",
   "scripts": {
     "build": "tsc",
     "watch:controller": "tsc -w",

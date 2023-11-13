@@ -1,4 +1,6 @@
 import { DataAttributeSetter, IMonoDataAttribute, IPolyDataAttribute } from './data';
+import UnknownAttribute from './data/attribute/unknown';
+import { DataAttributeChangeEvent } from './data/events';
 import { DataAttribute, IState, IStateManager } from './data/state';
 import { ChildTemplate, ComponentOptions, EventHandler, IComponent, PropDataSourceDefinition, PropDefinition, PropHandlerDefinition, StyleProperties, ViewModule } from './types';
 
@@ -11,7 +13,21 @@ export function setObservation(element: IComponent, prop: PropDefinition, data: 
 		element.observe((prop as DataAttribute), () => element.onDataLoad && element.onDataLoad(prop as IPolyDataAttribute));
 	} else if((prop as DataAttribute).DataAttribute) {
 		setter && setter((prop as IMonoDataAttribute).value);
-		element.observe((prop as DataAttribute), () => setter && setter((prop as IMonoDataAttribute).value));
+		element.observe((prop as DataAttribute), (e: Event) => {
+			const changeEvent = e as DataAttributeChangeEvent;
+			setter && setter(changeEvent.newValue);
+		});
+		if(prop instanceof UnknownAttribute) {
+			prop.addEventListener('initialized', (e: Event) => {
+				const newTarget = (e as CustomEvent).detail.value;
+				if(newTarget) {
+					element.observe((newTarget as DataAttribute), (e: Event) => {
+						const changeEvent = e as DataAttributeChangeEvent;
+						setter && setter(changeEvent.newValue);
+					});
+				}
+			})
+		}
 	} else if(typeof prop === 'object' && (prop as PropHandlerDefinition).handler) {
 		setter && setter((prop as PropHandlerDefinition).handler!());
 		if((prop as PropHandlerDefinition).dependencies?.length) {

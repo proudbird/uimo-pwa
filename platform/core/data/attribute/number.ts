@@ -2,6 +2,7 @@ import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 import { ValueError } from '../errors';
 import { NumberAttributeOptions } from './types';
+import { DataAttribute } from '../state';
 
 /**
  * Manages a number value and notifies consumers about any changes to that value
@@ -30,8 +31,8 @@ export default class NumberAttribute extends DataAttributeBase {
 		precision = 0,
 		truncate = true,
 		round = 'up',
-	}: NumberAttributeOptions) {
-		super();
+	}: NumberAttributeOptions, parent?: DataAttribute) {
+		super(parent);
 		this.#value = this.#prevValue = initValue;
 		this.maxLength = maxLength;
 		this.precision = precision;

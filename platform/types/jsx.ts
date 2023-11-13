@@ -33,5 +33,5 @@ export type JSXElement<T extends ComponentDefinition<any>, K extends HTMLElement
     style?: StandardProperties;
     events?: ElementEvents<K>;
     data? : { path?: string; source?: string };
-    children?: JSXElement<ComponentDefinition<any>>[] | string; 
+    children?: JSXElement<ComponentDefinition<any>> | JSXElement<ComponentDefinition<any>>[] | string; 
   };

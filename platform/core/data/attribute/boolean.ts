@@ -15,8 +15,8 @@ export default class BooleanAttribute extends DataAttributeBase {
    * @param {BooleanAttributeOptions} options - The options for initializing the BooleanAttribute.
    * @param {boolean} options.initValue - The initial value for the BooleanAttribute. Default to false.
    */
-	constructor({ initValue = false }: BooleanAttributeOptions) {
-		super();
+	constructor({ initValue = false }: BooleanAttributeOptions, parent?: DataAttribute) {
+		super(parent);
 		this.#value = this.#prevValue = initValue;
 	}
   

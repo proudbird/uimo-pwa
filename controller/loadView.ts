@@ -39,7 +39,7 @@ export default async function loadView(
 		}
 
 		/**
-		 * Cache is turn off befor cache update mechanism will be implemented
+		 * Cache is turn off before cache update mechanism will be implemented
 		 */
 		// If the view module is already cached, return the corresponding code from the cache.
 		// if (cache[viewId] && cache[viewId].code) {
@@ -49,8 +49,18 @@ export default async function loadView(
 		// Extract the viewName and relativeModuleFilePath from the viewId.
 		const viewIdParts = viewId.split('.');
 		const cubeName = viewIdParts[0];
-		const viewName = viewIdParts.slice(-1)[0];
-		const relativeModuleFilePath = viewId.replace(/\./g, '/');
+		const className = viewIdParts[1];
+		let modelName = viewIdParts[2];
+		let viewName: string
+		let relativeModuleFilePath: string;
+		if(className === 'Views') {
+			viewName = modelName;
+			relativeModuleFilePath = `${cubeName}/${className}/${viewName}`;
+		} else {
+			viewName = viewIdParts[3];
+			relativeModuleFilePath = `${cubeName}/${className}/${className}.${modelName}.Views/${viewName}`;
+		}
+
 
 		try {
 			// Load the view definition, data, and module.

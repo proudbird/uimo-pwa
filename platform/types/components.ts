@@ -7,7 +7,11 @@
 import { ComponentDefinition } from '../core';
 
 import {
-  BoxSpecification,
+  ActionBarExtraProps,
+	ActionBarSpecification,
+	ActionButtonExtraProps,
+	ActionButtonSpecification,
+	BoxSpecification,
 	ButtonSpecification,
 	IconExtraProps,
 	IconSpecification,
@@ -17,6 +21,10 @@ import {
 	MenuItemSpecification,
 	MenuSpecification,
 	NumberFieldSpecification,
+	ReferenceFieldExtraProps,
+	ReferenceFieldSpecification,
+	ReferenceInputExtraProps,
+	ReferenceInputSpecification,
 	TableFieldExtraProps,
 	TableFieldSpecification,
 	TableSpecification,
@@ -35,6 +43,8 @@ import {
 	WorkPanelSpecification,
 } from '../components/definitions';
 
+export type ActionBarComponent = ComponentDefinition<typeof ActionBarSpecification, ActionBarExtraProps>;
+export type ActionButtonComponent = ComponentDefinition<typeof ActionButtonSpecification, ActionButtonExtraProps>;
 export type BoxComponent = ComponentDefinition<typeof BoxSpecification>;
 export type ButtonComponent = ComponentDefinition<typeof ButtonSpecification>;
 export type IconComponent = ComponentDefinition<typeof IconSpecification, IconExtraProps>;
@@ -42,6 +52,8 @@ export type LabelComponent = ComponentDefinition<typeof LabelSpecification>;
 export type MenuComponent = ComponentDefinition<typeof MenuSpecification, MenuExtraProps>;
 export type MenuItemComponent = ComponentDefinition<typeof MenuItemSpecification, MenuItemExtraProps>;
 export type NumberFieldComponent = ComponentDefinition<typeof NumberFieldSpecification>;
+export type ReferenceFieldComponent = ComponentDefinition<typeof ReferenceFieldSpecification, ReferenceFieldExtraProps>;
+export type ReferenceInputComponent = ComponentDefinition<typeof ReferenceInputSpecification, ReferenceInputExtraProps>;
 export type TableComponent = ComponentDefinition<typeof TableSpecification>;
 export type TableFieldComponent = ComponentDefinition<typeof TableFieldSpecification, TableFieldExtraProps>;
 export type TabsBodyComponent = ComponentDefinition<typeof TabsBodySpecification, TabsBodyExtraProps>;

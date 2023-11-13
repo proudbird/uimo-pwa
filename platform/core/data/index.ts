@@ -2,8 +2,9 @@ import StringAttribute from './attribute/string';
 import NumberAttribute from './attribute/number';
 import BooleanAttribute from './attribute/boolean';
 import DateAttribute from './attribute/date';
-import ReferenceAttribute, { Reference } from './attribute/reference';
+import ReferenceAttribute from './attribute/reference';
 import DynamicListAttribute, { DynamicList } from './attribute/dynamic-list';
+import Reference from '../objects/reference';
 
 export {
   StringAttribute,
@@ -13,7 +14,7 @@ export {
   DynamicListAttribute
 };
 
-export type { Reference, DynamicList };
+export type { DynamicList };
 
 export type DataAttributeValue = string | number | boolean | Date | Reference | DynamicList;
 
@@ -28,12 +29,16 @@ export interface IMonoDataAttribute extends IDataAttribute {
 
 export interface IPolyDataAttribute extends IDataAttribute {
   [Symbol.iterator](): Iterator<IStateManager>;
-  page: number;
-  limit: number;
+  // page: number;
+  // limit: number;
+  length: number;
+  // selected: string | undefined;
+  // direction: 'next' | 'prev' | undefined
   forEach(iteratee: (value: IStateManager, index: number) => boolean | void): void;
-  getItemByIndex(index: number): IStateManager;
-	getItemByPage(page: number, index: number): IStateManager;
-  nextPage(): void;
+  // getItemByIndex(index: number): IStateManager;
+	// getItemByPage(page: number, index: number): IStateManager;
+  // nextPage(): void;
+  // prevPage(): void;
 }
 
 export type DataAttribute = IMonoDataAttribute | IPolyDataAttribute;
@@ -71,7 +76,9 @@ export type StateDefinition = Record<string, {
   type: string, 
   defaultValue?: any, // TODO: we need to leave only one of these
   initValue?: any,  
-  link?: any 
+  link?: any,
+  id?: string,
+  selected?: string,
 }>;
 
 export type DataAttributeSetter = (value: any) => void;

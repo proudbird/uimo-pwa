@@ -1,0 +1,64 @@
+@import '~@spectrum-css/textfield/dist/index-vars';
+
+
+uimo-reference-input {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+}
+
+uimo-reference-input > input {
+  z-index: 1;
+
+  @extend .spectrum-Textfield-input;
+
+  &.size-small {
+    @extend .spectrum-Textfield--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-Textfield--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-Textfield--sizeL;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--highcontrast-textfield-focus-indicator-color, var(--mod-textfield-focus-indicator-color, var(--spectrum-textfield-focus-indicator-color)));
+  }
+
+  &:focus:hover {
+    outline: none;
+    border-color: var(--highcontrast-textfield-focus-indicator-color, var(--mod-textfield-focus-indicator-color, var(--spectrum-textfield-focus-indicator-color)));
+  }
+}
+
+uimo-reference-input {
+  uimo-action-bar {
+    position: absolute;
+    right: 0;
+    top: 1px;
+    opacity: 1;
+    pointer-events: auto;
+    height: calc(100% - 2px);
+    padding: 0;
+    padding-inline-end: 1px;
+    
+    uimo-action-button {
+      border-radius: 0px;
+      border-inline-end: none;
+      border-block-start: none;
+      border-block-end: none;
+      height: 100%;
+      border-start-end-radius: 4px;
+      border-end-end-radius: 4px;
+      width: 32px;
+
+      uimo-icon {
+        color: var(--highcontrast-textfield-border-color, var(--mod-textfield-border-color, var(--spectrum-textfield-border-color)));
+      }
+    }
+  }
+}

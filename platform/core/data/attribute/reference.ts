@@ -1,13 +1,9 @@
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
+import Reference from '../../objects/reference';
+import { DataAttribute } from '../state';
 
-export type Reference = {
-	id: string;
-	model: string;
-	presentation: string;
-};
-
-export type ReferenceAttributeOptions = {
+export type ReferenceAttributeProps = {
   readonly initValue?: Reference | null;
 };
 
@@ -15,8 +11,8 @@ export default class ReferenceAttribute extends DataAttributeBase {
 	#value: Reference | null;
 	#prevValue: Reference | null;
 
-	constructor({ initValue = null }: ReferenceAttributeOptions) {
-		super();
+	constructor({ initValue = null }: ReferenceAttributeProps, parent?: DataAttribute) {
+		super(parent);
 		this.#value = this.#prevValue = initValue;
 	}
   

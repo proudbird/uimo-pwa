@@ -1,0 +1,25 @@
+@import '~@spectrum-css/actionbutton/dist/index-vars';
+
+uimo-action-button {
+  @extend .spectrum-ActionButton;
+
+  &.size-extra-small {
+    @extend .spectrum-ActionButton--sizeXS;
+  }
+
+  &.size-small {
+    @extend .spectrum-ActionButton--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-ActionButton--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-ActionButton--sizeL;
+  }
+  
+  &.size-extra-large {
+    @extend .spectrum-ActionButton--sizeL;
+  }
+}

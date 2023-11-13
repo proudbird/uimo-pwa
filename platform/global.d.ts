@@ -10,4 +10,5 @@ declare interface Constructable {
 declare interface Application implements Constructable {
   id: string;
   appFrame: View;
+  showView: (viewId: string, params: Record<string, any>) => View;
 }

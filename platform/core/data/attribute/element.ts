@@ -1,13 +1,14 @@
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 import { IComponent } from '@/core/types';
+import { DataAttribute } from '../state';
 
 export default class ElementAttribute extends DataAttributeBase {
 	#value: IComponent | null;
 	#prevValue: IComponent | null;
 
-	constructor({ initValue = null }) {
-		super();
+	constructor({ initValue = null }, parent?: DataAttribute) {
+		super(parent);
 		this.#value = this.#prevValue = initValue;
 	}
   

@@ -1,4 +1,6 @@
   
+export type { specification as ActionBarSpecification, ExtraProps as ActionBarExtraProps } from './basic/action-bar/action-bar.types';
+export type { specification as ActionButtonSpecification, ExtraProps as ActionButtonExtraProps } from './basic/action-button/action-button.types';
 export type { specification as BoxSpecification } from './basic/box/box.types';
 export type { specification as ButtonSpecification } from './basic/button/button.types';
 export type { specification as CheckboxSpecification } from './basic/checkbox/checkbox.types';
@@ -7,6 +9,8 @@ export type { specification as LabelSpecification } from './basic/label/label.ty
 export type { specification as MenuItemSpecification, ExtraProps as MenuItemExtraProps } from './basic/menu/menu-item/menu-item.types';
 export type { specification as MenuSpecification, ExtraProps as MenuExtraProps } from './basic/menu/menu.types';
 export type { specification as NumberFieldSpecification } from './basic/number-field/number-field.types';
+export type { specification as ReferenceFieldSpecification, ExtraProps as ReferenceFieldExtraProps } from './basic/reference-field/reference-field.types';
+export type { specification as ReferenceInputSpecification, ExtraProps as ReferenceInputExtraProps } from './basic/reference-input/reference-input.types';
 export type { specification as TableFieldSpecification, ExtraProps as TableFieldExtraProps } from './basic/table/table-field/table-field.types';
 export type { specification as TableSpecification } from './basic/table/table.types';
 export type { specification as TabsBodySpecification, ExtraProps as TabsBodyExtraProps } from './basic/tabs/tabs-body/tabs-body.types';

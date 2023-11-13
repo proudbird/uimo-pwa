@@ -10,6 +10,7 @@ import {
   MenuComponent,
   MenuItemComponent,
   NumberFieldComponent,
+  ReferenceFieldComponent,
   TableComponent,
   TableFieldComponent,
   TabsComponent,
@@ -29,6 +30,7 @@ declare namespace JSX {
     'text': JSXElement<TextComponent>;
     'text-field': JSXElement<TextFieldComponent>;
     'number-field': JSXElement<NumberFieldComponent>;
+    'reference-field': JSXElement<ReferenceFieldComponent>;
     'icon': JSXElement<IconComponent>;
     'label': JSXElement<LabelComponent>;
     'table': JSXElement<TableComponent>;

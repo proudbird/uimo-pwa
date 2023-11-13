@@ -11,7 +11,7 @@ uimo-table-field {
   border-block-end: var(--mod-table-border-width, var(--spectrum-table-border-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
 
   &:hover {
-    background-color: var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
+    background-color: var(--table-field-hover-background-color);
   }
 
   & > div {

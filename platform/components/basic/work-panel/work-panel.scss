@@ -14,4 +14,10 @@ uimo-work-panel {
   & uimo-view {
     padding: 1rem;
   }
+
+  & uimo-tabs {
+    &.horizontal {
+      align-items: flex-start;
+    }
+  }
 }

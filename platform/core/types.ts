@@ -1,5 +1,14 @@
 import { ElementEvents } from "../types/dom";
 import { DataAttribute, DataAttributeValue, IPolyDataAttribute, IPolyDataAttributeEvent, IState, IStateManager, StateDefinition, StateManagerAttributes, StateValues } from "./data";
+import InstanceAttribute from "./data/attribute/instance";
+import Reference from "./objects/reference";
+
+/**
+ * Common Types
+ */
+export type WithDynamicProperties<T = any> = {
+  [key: string]: T;
+}
 
 /**
  * Component Specification
@@ -55,7 +64,7 @@ export type PropDataSourceDefinition = {
 export type PropDefinition = string | number | boolean | DataAttribute | PropHandlerDefinition | PropDataSourceDefinition;
 export type PropDefinitions = Record<string, PropDefinition>;
 
-export type EventHandler<E extends Event = Event> = (event: E) => void;
+export type EventHandler<E extends Event = Event> = (event: E, ...args: any) => void;
 export type EventHandlerDefinition<E extends Event = Event> = string | EventHandler<E>;
 
 export type StyleProperties = keyof Omit<CSSStyleDeclaration, typeof Symbol.iterator | number | 'length' | 'parentRule'>;
@@ -114,7 +123,7 @@ export type ElementOptions = {
   position?: number;
 }
 
-export interface IComponent extends HTMLElement {
+export interface IComponent<D extends DataAttribute = DataAttribute> extends HTMLElement {
   isCustom: true;
   config: Template;
   state: IState;
@@ -123,7 +132,8 @@ export interface IComponent extends HTMLElement {
   $scope: IStateManager;
   props: ComponentProps<any>;
   context: IState;
-  data: DataAttribute;
+  data: D;
+  alias: string | undefined;
   elements: Record<string, IComponent>;
   owner: IView;
   render(): Template;
@@ -154,7 +164,7 @@ export interface ConstructableComponent<T> {
   prototype: T;
 }
 
-export type ExtendedComponent<D extends ComponentDefinition<any, any>> = Constructable<IComponent> & ConstructableComponent<IExtendedComponent<D>>
+export type ExtendedComponent<T extends ComponentDefinition<any, any>, D extends DataAttribute = DataAttribute> = Constructable<IComponent<D>> & ConstructableComponent<IExtendedComponent<T>>
 
 export type ExtendedComponentProps<T extends ComponentSpecification> = { 
 	[K in keyof T['props']]: T['props'][K];
@@ -197,13 +207,25 @@ export type ViewModule = ViewModuleMethods & {
   onBeforeMount?: () => void;
 };
 
+export type ViewParams = WithDynamicProperties & {
+  reference?: Reference;
+  selectedItems?: Reference[];
+};
+
+export type ViewCloseCallback = (result: any) => void;
+
 export interface IView {
   id: string;
 	elements: Record<string, IComponent>;
 	node: IComponent;
 	state: IState;
 	module: ViewModule;
-	showView(view: IView): void;
+  reference: Reference | null;
+  instance: InstanceAttribute | null;
+  params: ViewParams;
+  on(event: string, callback: EventListenerOrEventListenerObject): void;
+	show(view: IView, closeCallback: ViewCloseCallback): void;
+  close: ViewCloseCallback
 }
 
 export type InitViewModuleCallback = (view: IView) => ViewModule;

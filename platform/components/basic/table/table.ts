@@ -1,18 +1,24 @@
 
 import { Component, DefineComponent } from '@/core';
-import { IPolyDataAttribute } from '@/core/data';
-import { type ComponentOptions } from '@/core/types';
+import { DynamicListAttribute } from '@/core/data';
+import { IView, type ComponentOptions } from '@/core/types';
 import { ChildTemplate } from '@/core/types';
-
+import Reference from '@/core/objects/reference';
 
 import { specification, ITableComponent } from './table.types';
+import TableField from './table-field/table-field';
+import { set } from 'yaml/dist/schema/yaml-1.1/set';
 
 @DefineComponent('table')
-export default class Table extends Component<ITableComponent>(specification) {
+export default class Table extends Component<ITableComponent, DynamicListAttribute>(specification) {
 
-  constructor({ config, stateDefinition, ...rest }: ComponentOptions) {
+  #firstElement: HTMLElement | null = null;
+  #firstElementTopOffset: number = 0;
+
+  constructor({ config, stateDefinition, owner, ...rest }: ComponentOptions) {
     config = config || {};
     config.scope = 'table';
+
     const itemSlot = (config.children as ChildTemplate[])?.find(slot => slot.tagName === 'fields'); 
 
     const colTemplate = config.props?.template || (itemSlot?.children as ChildTemplate[])?.map(() => '1fr').join(' ');
@@ -20,11 +26,10 @@ export default class Table extends Component<ITableComponent>(specification) {
       template: { type: 'string', initValue: colTemplate },
       resizePending: { type: 'boolean', initValue: false },
       resizeCursorPosition: { type: 'number', initValue: NaN },
-      bottomTriggerPosition: { type: 'number', initValue: NaN },
-      allEntriesLoaded: { type: 'boolean', initValue: false },
+      selectedItems: { type: 'list', initValue: owner.params.selectedItems },
     };
 
-    super({ config, stateDefinition, ...rest });
+    super({ config, stateDefinition, owner, ...rest });
     
     this.addElements([
       {
@@ -44,20 +49,24 @@ export default class Table extends Component<ITableComponent>(specification) {
         children: [
           {
             tagName: 'div',
-            alias: 'endTrigger',
-            className: 'end-trigger',
+            alias: 'triggerAtStart',
+            className: 'fetch-trigger start',
+          },
+          {
+            tagName: 'div',
+            alias: 'triggerAtEnd',
+            className: 'fetch-trigger end',
             style: { 
               display: { 
-                handler: () => this.state.allEntriesLoaded ? 'none' : 'flex', 
-                dependencies: [this.$state.allEntriesLoaded] 
+                handler: () => {
+                  const shouldDisplay = !this.data.isFullFromEnd;
+                  const value = shouldDisplay ? 'flex' : 'none';
+                  
+                  return value;
+                }, 
+                dependencies: [this.data] 
               }
             },
-            children: [
-              {
-                tagName: 'progress-bar',
-                props: { indeterminate: true },
-              }
-            ]
           }
         ]
       }, {
@@ -86,27 +95,52 @@ export default class Table extends Component<ITableComponent>(specification) {
     let options = {
         root: this.elements.body,
         rootMargin: '0px',
-        threshold: 0.5
+        threshold: 0.1
     }
 
-    const callback: IntersectionObserverCallback = (entries, observer) => {
+    const nextCallback: IntersectionObserverCallback = (entries, observer) => {
         entries.forEach((entry) => {
-          if(entry.boundingClientRect.top > 0) {
-            (this.data as IPolyDataAttribute).nextPage();
+          if(entry.isIntersecting && entry.boundingClientRect.top > 0) {
+            this.#firstElement = null;
+            (this.data as DynamicListAttribute).nextPage();
           }       
         });
     }
         
-    let observer = new IntersectionObserver(callback, options);
-    let target = this.elements.body.elements.endTrigger;
-    observer.observe(target!);
+    let afterObserver = new IntersectionObserver(nextCallback, options);
+    let afterTriggerTarget = this.elements.body.elements.triggerAtEnd;
+    afterObserver.observe(afterTriggerTarget!);
+
+    const prevCallback: IntersectionObserverCallback = (entries, observer) => {
+      if(!isFetchingDataFromMiddle(this) || this.data.portion  === 'first') {
+        return;
+      }
+      entries.forEach((entry) => {
+        if(entry.isIntersecting) {
+          if(this.data.portion === 'next' && this.data.page === 1) {
+            return;
+          }
+
+          this.#firstElement = this.elements.body.childNodes[1] as HTMLElement;
+          
+          (this.data as DynamicListAttribute).prevPage();
+        }
+      });
+    }
+        
+    let startTriggerObserver = new IntersectionObserver(prevCallback, options);
+    let startTriggerTarget = this.elements.body.elements.triggerAtStart;
+    startTriggerTarget && startTriggerObserver.observe(startTriggerTarget);
   }
 
   onDataLoad() {
+    this.#firstElementTopOffset = this.#firstElement?.offsetTop || 0;
+    
     const itemSlot = (this.config.children as ChildTemplate[])?.find(slot => slot.tagName === 'fields');
+    
+    const data = this.data as DynamicListAttribute;
 
-    const data = this.data as IPolyDataAttribute;
-    if(data.page === 1) {
+    if(data.portion === 'first') {
       ((itemSlot?.children || []) as ChildTemplate[]).forEach((fieldConfig, colIndex) => {
         this.elements.header.addElements({
           tagName: 'table-header-cell',
@@ -137,13 +171,55 @@ export default class Table extends Component<ITableComponent>(specification) {
           }
         };
       });
+      
+      let position: number | undefined;
+      if(data.portion === 'prev') {
+        position = index + 1;
+      } else {
+        position = this.elements.body.childNodes.length - 1;
+      }
 
+      const isSelected = isSelectionMode(this) && !!this.state.selectedItems.length && !!this.state.selectedItems.find((selected: Reference) => {
+        return selected.id === item.Reference?.value.id
+      });
+      
       this.elements.body.addElement({
         tagName: 'table-row',
-        scope: 'table',
-        style: { gridTemplateColumns: `var(--tableTemplate)` },
         children: fieldConfigs,
-      }, { context: item, position: this.elements.body.childNodes.length - 1 });
+        props: {
+          selectionMode: this.props.selectionMode,
+        },
+        data: item,
+        events: {
+          select: this.config.events?.select!,
+        }
+      }, { context: item, position });
+
+      if(this.#firstElement) {
+        this.elements.body.elements.triggerAtStart.style.display = 'none';
+        setTimeout(() => {
+          this.#firstElement!.scrollIntoView({ block: 'start' });
+          this.elements.body.scrollBy(0, -this.#firstElementTopOffset);
+        });
+      } 
+    }
+
+    if(!this.#firstElement && isFetchingDataFromMiddle(this) && data.page === 1) {
+      new ResizeObserver(() => {
+        (this.elements.body.childNodes[1] as HTMLElement).scrollIntoView({ block: 'start' });
+      }).observe(this.elements.body.childNodes[1] as HTMLElement)
+    }
+
+    if(!data.isFullFromStart) {
+      this.elements.body.elements.triggerAtStart.style.display = 'flex';
     }
   }
+}
+
+function isSelectionMode(table: Table): boolean {
+  return table.props.selectionMode !== 'none';
+}
+
+function isFetchingDataFromMiddle(table: Table): boolean {
+  return !!table.state.selectedItems.length;
 }

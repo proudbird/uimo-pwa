@@ -17,9 +17,14 @@ export default class WorkPanel extends Component<IWorkPanelComponent>(specificat
     super({ ...rest, stateDefinition });
   }
 
-  showView(view: IView): void {
-    if(this.#viewsHash[view.id]) {
-      this.elements.tabs.state.selectedItem = this.#viewsHash[view.id];
+  show(view: IView): void {
+    let viewId = view.id;
+    if(view.reference) {
+      viewId = `${viewId}#${view.reference.id}`;
+    }
+
+    if(this.#viewsHash[viewId]) {
+      this.elements.tabs.state.selectedItem = this.#viewsHash[viewId];
       return;
     }
 
@@ -58,19 +63,21 @@ export default class WorkPanel extends Component<IWorkPanelComponent>(specificat
 
     
     item.observe(this.elements.tabs.$state.selectedItem, () => {
-      view.node.style.display = this.elements.tabs.state.selectedItem === item ? 'inline-block' : 'none';
+      view.node.style.display = this.elements.tabs.state.selectedItem === item ? 'flex' : 'none';
     });
 
     const closeHandler = () => {
       this.elements.tabs.elements.items.removeChild(item);
       this.elements.tabs.elements.body.removeChild(view.node);
       this.elements.tabs.state.selectedItem = this.elements.tabs.elements.items.lastChild;
-      delete this.#viewsHash[view.id];
+      delete this.#viewsHash[viewId];
     };
 
     item.elements.titleBox.elements.closeButton.on('click', closeHandler);
 
-    this.#viewsHash[view.id] = item;
+    this.#viewsHash[viewId] = item;
+
+    view.on('close', closeHandler);
   }
 
   render(): Template {

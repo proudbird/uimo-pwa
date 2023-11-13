@@ -33,7 +33,7 @@ export default defineConfig({
 				target: 'http://127.0.0.1:21021/',
 				changeOrigin: true,
 				bypass: function(req) {
-					if (/\/(app)(.*)\/(session|login|init|cube|module|list|view|instance)\//.test(req.url || '')) {
+					if (/\/(app)(.*)\/(session|login|init|cube|module|list|view|instance|save)\//.test(req.url || '')) {
 						return null;
 					}
 					if (/\/(app)(.*)\/(view)\//.test(req.url || '')) {

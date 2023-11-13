@@ -5,6 +5,7 @@ export default class Application {
   #id: string;
   #appFrame: View | null = null;
   #viewFrame: View | null = null;
+  #views: Record<string, View> = {};
 
   constructor() {
     const pathParts = location.pathname.split('/');
@@ -44,11 +45,13 @@ export default class Application {
     return this.#viewFrame || this.#appFrame!;
   }
 
-  async showView(viewId: string, params?: any, target: 'app-frame' | 'view-frame' = 'view-frame') {
+  async showView(viewId: string, params?: any, target: 'app-frame' | 'view-frame' = 'view-frame', closeCallback?: (result: any) => void) {
+    //@ts-ignore
     if(!window.views[viewId]) {
       await loadModule(`view/${viewId}`);
     }
 
+    //@ts-ignore
     const viewDefinition = window.views[viewId];
 
     if(viewDefinition.error) {
@@ -72,17 +75,25 @@ export default class Application {
       styleElement.innerHTML = style;
     }
 
-    const view = new View(viewId, layout, data, getModule, params);
+
+    // we need to copy config because it can be modified later
+    // but we need to keep original config for future use
+    const configCopy = JSON.parse(JSON.stringify(layout));
+
+    const view = new View(viewId, configCopy, data, getModule, params);
     // TODO: we need change the way of creating view, because now 
     // every time we want show a view we create a new instance of it,
     // even if it is in memory already
 
     if(target === 'view-frame') {
-      this.viewFrame.showView(view);
+      this.viewFrame.show(view);
     } else {
-      this.appFrame.showView(view);
+      this.appFrame.show(view);
     }
 
+    this.#views[viewId] = view;
+    // TODO: we need to remove view from memory when it is closed
+   
     return view;
   }
 

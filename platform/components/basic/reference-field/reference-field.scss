@@ -1,0 +1,20 @@
+@import '~@spectrum-css/textfield/dist/index-vars';
+
+uimo-reference-field {
+  @extend .spectrum-Textfield;
+
+  display: block;
+  width: 100%;
+
+  &.size-small {
+    @extend .spectrum-Textfield--sizeS;
+  }
+  
+  &.size-medium {
+    @extend .spectrum-Textfield--sizeM;
+  }
+  
+  &.size-large {
+    @extend .spectrum-Textfield--sizeL;
+  }
+}

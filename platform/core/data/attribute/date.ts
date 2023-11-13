@@ -1,6 +1,7 @@
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 import { DateAttributeFormat, DateAttributeInitValue, DateAttributeOptions } from './types';
+import { DataAttribute } from '../state';
 
 /**
  * Manages a Date value and notifies consumers about any changes to that value
@@ -18,8 +19,8 @@ export default class DateAttribute extends DataAttributeBase {
    * @param {DateAttributeInitValue} options.initValue - The initial value of the DateAttribute. Defaults to DateAttributeInitValue.TODAY.
    * @param {DateAttributeFormat} options.format - The format of the DateAttribute value. Defaults to DateAttributeFormat.DATETIME.
    */
-	constructor({ initValue = DateAttributeInitValue.TODAY, format = DateAttributeFormat.DATETIME }: DateAttributeOptions) {
-		super();
+	constructor({ initValue = DateAttributeInitValue.TODAY, format = DateAttributeFormat.DATETIME }: DateAttributeOptions, parent: DataAttribute) {
+		super(parent);
 		this.#initValue = initValue;
 		this.#value = this.#prevValue = this.#getInitValue();
 		this.format = format;

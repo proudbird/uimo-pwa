@@ -1,17 +1,19 @@
-import { IStateManager, StateManager } from '../state';
+import { DataAttribute, IStateManager, StateManager } from '../state';
 
 import DataAttributeBase from './dataAttribute';
 import { CollectionDataAttributeChangeEvent } from '../events';
 import { StateDefinition } from '..';
+import Reference from '../../objects/reference';
 
 export type DynamicList = {};
 
 export interface DynamicListAttributeOptions {
 	cube: string;
 	className: string;
-	object: string;
+	model: string;
 	limit?: number;
 	fields?: string;
+	selected?: string;
 }
 
 export type DataProviderAttribute = {
@@ -20,7 +22,9 @@ export type DataProviderAttribute = {
 	title: string;
 	type: {
 		dataType: string;
-		reference: string;
+		cube: string;
+		className: string;
+		model: string;
 	}
 };
 
@@ -29,27 +33,39 @@ export type DynamicListProvider = {
 	entries: any[];
 }
 
+type FetchPortion = 'first' | 'next' | 'prev';
+
 export default class DynamicListAttribute extends DataAttributeBase {
 	#cube: string;
 	#className: string;
-	#object: string;
+	#model: string;
 	#limit: number;
 	#offset: number = 0;
 	#fields: string;
-	#pageIndex: number = 0;
+	#selected: string | undefined;
+	#cursor: string | undefined;
+	#portion: FetchPortion = 'first';
+	#length: number = 0;
+	#pageIndex: number = 1;
 	#provider: DynamicListProvider = {} as DynamicListProvider;
 	#data: any[] = [];
+	#fetchPromise: Promise<any> | undefined;
+	// during initialization we suppose that all entries from the start are loaded
+	#isFullFromStart: boolean = true;
+  #isFullFromEnd: boolean = false;
 
-	constructor({ cube, className, object, fields = '', limit = 50 }: DynamicListAttributeOptions) {
-		super();
+	constructor({ cube, className, model, fields = '', limit = 30, selected }: DynamicListAttributeOptions, parent?: DataAttribute) {
+		super(parent);
 
 		this.#cube = cube;
 		this.#className = className;
-		this.#object = object;
-		this.#limit = limit;
+		this.#model = model;
+		this.#limit = Math.max(6, limit);
 		this.#fields = fields;
+		this.#selected = selected;
+		this.#cursor = selected;
 
-		this.#fetchData(this.#onDataLoad.bind(this));
+		this.#fetchPromise = this.#fetchData(this.#onDataLoad.bind(this));
 	}
 
 	async #fetchData(callback: (data: any) => void) {
@@ -62,11 +78,13 @@ export default class DynamicListAttribute extends DataAttributeBase {
 			body: JSON.stringify({
 				cube: this.#cube,
 				className: this.#className,
-				object: this.#object,
+				model: this.#model,
 				options: {
 					limit: this.#limit,
 					offset: this.#offset,
 					fields: this.#fields,
+					cursor: this.#cursor,
+					portion: this.#portion,
 				}
 			})
 		});
@@ -75,16 +93,41 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		if(result.error) {
 			throw new Error(result.error);
 		} else {
-			callback(result.data);
+			return callback(result.data);
 		}
 	}
 
-	#onDataLoad(data: { attributes: any, entries: any[] }) {
+	async #onDataLoad(data: { attributes: any, entries: any[] }) {
 		this.#provider.attributes = this.#provider.attributes || data.attributes;
 		this.#provider.entries = (this.#provider.entries || []).concat(data.entries);
 
-		this.#data[this.#pageIndex] = data.entries;
-		this.#pageIndex++;
+		// insert new portion to the current page position
+		if(this.#cursor && this.#portion === 'first') {
+			this.#data.push(data.entries);
+
+			this.#isFullFromStart = false;
+
+			this.#pageIndex = 1;
+		} else if (this.#portion === 'prev') {
+
+
+				this.#data.splice(0, 0, data.entries);
+				this.#pageIndex = 1;
+
+
+			if(data.entries.length < this.#limit) {
+				this.#isFullFromStart = true;
+			}
+
+		} else {
+			this.#data.push(data.entries);
+
+			if(data.entries.length < this.#limit) {
+				this.#isFullFromEnd = true;
+			}
+
+			this.#pageIndex = this.#data.length;
+		}
 
 		this.dispatchEvent(new CollectionDataAttributeChangeEvent(this, data, this.#pageIndex));
 	}
@@ -93,8 +136,31 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		return this.#limit;
 	}
 
+	get entries(): any {
+		return this.#data;
+	}
+
 	get page(): number {
 		return this.#pageIndex;
+	}
+
+	get selected(): string | undefined {
+		return this.#selected;
+	}
+
+	get length(): number {
+		return this.#provider.entries?.length || 0;
+	}
+
+	get portion(): FetchPortion {
+		return this.#portion;
+	}
+	get isFullFromStart(): boolean {
+		return this.#isFullFromStart;
+	}
+
+	get isFullFromEnd(): boolean {
+		return this.#isFullFromEnd;
 	}
 
 	getItemByIndex(index: number) {
@@ -108,7 +174,15 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		if(index >= this.#data[page-1].length) {
 			throw `index_out_of_range`;
 		}
-		return this.#buildItem(this.#data[page-1][index]);
+
+		const item = this.#buildItem(this.#data[page-1][index]);
+
+		// if(this.#selected && index === this.#data[page-1].length - 1) {
+		// 	this.#cursor = item.id?.value;
+		// 	this.#portion = 'next';
+		// }
+
+		return item;
 	}
 
 	#buildItem(entry: any) {
@@ -122,12 +196,14 @@ export default class DynamicListAttribute extends DataAttributeBase {
 				attrType = 'Reference';
 			}
 
-			if(attrType === 'Reference') {
-				initValue = {
+			if(attrType.toLocaleLowerCase() === 'reference') {
+				initValue = new Reference({
+					cube: attr.type.cube,
+					className: attr.type.className,
+					model: attr.type.model,
 					id: record[0],
-					model: record[1],
-					presentation: record[2],
-				};
+					presentation: record[1],
+				});
 			}
 
 			definition[attrName] = { type: attrType.toLocaleLowerCase(), initValue };
@@ -136,8 +212,29 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		return (new StateManager(definition)) as IStateManager;
 	}
 
-	nextPage() {
+	async nextPage() {
+		
+		await this.#fetchPromise;
+		
+		this.#portion = 'next';
+
+		if(this.#cursor) {
+			if(this.#data.length) {
+				this.#cursor = this.getItemByPage(this.#data.length, this.#data.at(-1).length - 1).id?.value;
+			}
+		}
+
 		this.#offset += this.#limit;
+		this.#fetchData(this.#onDataLoad.bind(this));
+	}
+
+	async prevPage() {
+
+		await this.#fetchPromise;
+
+		this.#cursor = this.getItemByPage(1, 0).Reference?.value.id;
+		this.#portion = 'prev';
+
 		this.#fetchData(this.#onDataLoad.bind(this));
 	}
 

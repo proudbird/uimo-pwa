@@ -4,6 +4,7 @@ uimo-number-field {
   @extend .spectrum-Textfield;
 
   display: block;
+  width: 100%;
 
   &.size-small {
     @extend .spectrum-Textfield--sizeS;

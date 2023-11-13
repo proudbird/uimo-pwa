@@ -2,6 +2,7 @@ import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 import { ValueError } from '../errors';
 import { StringAttributeOptions } from './types';
+import { DataAttribute } from '../state';
 
 /**
  * Manages a string value and notifies consumers about any changes to that value
@@ -20,8 +21,8 @@ export default class StringAttribute extends DataAttributeBase {
    * @param {boolean} options.truncate - Specifies whether the value should be truncated if it exceeds the maximum length. Default is true.
    * @throws {ValueError} If the value exceeds the maximum length and truncate is set to false.
    */
-	constructor({ initValue = '', maxLength = 0, truncate = true }: StringAttributeOptions) {
-		super();
+	constructor({ initValue = '', maxLength = 0, truncate = true }: StringAttributeOptions, parent?: DataAttribute) {
+		super(parent);
 		this.#value = this.#prevValue = initValue;
 		this.maxLength = maxLength;
 		this.truncate = truncate;

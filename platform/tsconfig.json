@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "isolatedModules": false
+    "isolatedModules": false,
+    "types": ["./global.d.ts"],
   },
   "extends": "../tsconfig.json"
 }

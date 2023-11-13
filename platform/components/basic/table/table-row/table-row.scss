@@ -6,4 +6,10 @@ uimo-table-row {
   display: grid;
   width: 100%;
   pointer-events: none;
+
+  --table-field-hover-background-color: var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
+
+  &.is-selected:hover {
+    --table-field-hover-background-color: rgba(var(--spectrum-blue-1200-rgb), var(--spectrum-table-selected-row-background-opacity-hover));
+  }
 }

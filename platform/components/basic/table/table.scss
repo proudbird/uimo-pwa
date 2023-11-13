@@ -26,12 +26,23 @@ uimo-table {
     background-color: var(--highcontrast-table-focus-indicator-color, var(--mod-table-drop-zone-outline-color, var(--spectrum-table-drop-zone-outline-color)));
   }
 
-  .end-trigger {
+  .fetch-trigger {
     width: 100%;
-    min-height: 30px;
-    display: flex;
+    display: none;
     align-items: center;
-    justify-content: center;
-    background-color: var(--spectrum-table-cell-background-color);;
+    background-color: var(--spectrum-table-cell-background-color);
+    flex-direction: column;
+    
+    
+    &.start {
+      justify-content: flex-start;
+      min-height: 30px;
+    }
+    
+    &.end {
+      justify-content: flex-end;
+      min-height: 90px;
+      margin-top: -50px;
+    }
   }
 }

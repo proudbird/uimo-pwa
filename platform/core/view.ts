@@ -3,29 +3,48 @@ import {
 	IView, 
 	InitViewModuleCallback, 
 	Template, 
-	ViewModule
+	ViewCloseCallback, 
+	ViewModule,
+	ViewParams
 } from '@/core/types';
 
 import { StateDefinition } from '@/core/data';
 import { IState, IStateManager, StateManager } from '@/core/data/state';
 
 import ViewElement from '@/components/basic/view';
+import InstanceAttribute from './data/attribute/instance';
+import Reference from './objects/reference';
 
-type ViewParams = {
-  data: Record<string, any>;
-}
-
-export default class View implements IView {
+export default class View extends EventTarget implements IView {
 	#id: string;
 	#state: IStateManager;
 	#module: ViewModule;
 	#node: IComponent;
+	#instance: InstanceAttribute | null = null;
+	#reference: Reference | null = null;
+	#params: ViewParams;
+	#listeners: Record<string, EventListenerOrEventListenerObject> = {};
 
 	constructor(id: string, config: Template, contextDefinition: StateDefinition, getModule: InitViewModuleCallback, params?: ViewParams) {
+		super();
+
 		this.#id = id;
 		this.#module = getModule(this);
+		this.#params = params || {};
+
+		if(params?.reference) {
+			const instanceDefinition = contextDefinition.instance;
+			instanceDefinition.id = params.reference.id;
+			this.#reference = params.reference;
+		}
+
+		if(params?.selectedItems) {
+			contextDefinition.list.selected = params.selectedItems[0].id;
+		}
+
 		this.#state = new StateManager(contextDefinition);
 		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
+		this.#instance = this.#state['instance'];
 
 		for(const attrName of Object.getOwnPropertyNames(this.#state)) {
 			Object.defineProperty(this, attrName, {
@@ -58,7 +77,44 @@ export default class View implements IView {
 		return this.#state.getData();
 	}
 
-	showView(view: View) {
+	get reference(): Reference | null {
+		return this.#reference;
+	}
+
+	get instance(): InstanceAttribute | null {
+		return this.#instance;
+	}
+
+	get params(): ViewParams {
+		return this.#params;
+	}
+
+	on(event: string, callback: EventListenerOrEventListenerObject) {
+		this.addEventListener(event, callback);
+		this.#listeners[event] = callback;
+	}
+
+	show(view: View) {
 		this.#node.replaceChildren(view.node);
+
+		this.dispatchEvent(new CustomEvent('show', {
+			detail: view
+		}));
+	}
+
+	close(result: any) {
+		this.dispatchEvent(new CustomEvent('close', {
+			detail: result
+		}));
+
+		for(const event in this.#listeners) {
+			this.removeEventListener(event, this.#listeners[event]);
+		}
+	}
+
+	async save(): Promise<void> {
+		if(this.#instance) {
+			this.#instance.save();
+		}
 	}
 }
