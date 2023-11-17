@@ -1,4 +1,5 @@
 import { IPolyDataAttributeEvent, PolyDataAttributeChangeEventType, PolyDataAttributeChangeOptions } from '.';
+import InstanceAttribute from './attribute/instance';
 import { DataAttribute } from './state';
 
 export class DataAttributeChangeEvent<T = any> extends Event {
@@ -13,6 +14,17 @@ export class CollectionDataAttributeChangeEvent<T> extends Event {
 	}
 }
 
+export class CollectionDataAttributeClearEvent<T> extends Event {
+	constructor(public initiator: DataAttribute) {
+		super('clear');
+	}
+}
+
+export class CollectionDataAttributeUpdateEvent extends Event {
+	constructor(public initiator: DataAttribute, public instance: InstanceAttribute) {
+		super('update');
+	}
+}
 export class PolyDataAttributeChangeEvent<T> extends Event implements IPolyDataAttributeEvent {
 	initiator: DataAttribute;
 	collection: any;

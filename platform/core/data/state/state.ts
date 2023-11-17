@@ -1,4 +1,4 @@
-import { PropDataSourceDefinition, PropHandlerDefinition } from '../../../core/types';
+import { IView, PropDataSourceDefinition, PropHandlerDefinition } from '../../../core/types';
 
 import { 
 	DataAttribute, 
@@ -12,9 +12,15 @@ import dataAttributeConstructors from'../attribute/constructors';
 
 class StateManagerBase {
 	#data: IState;
+	#owner: IView;
 
-	constructor() {
+	constructor(owner: IView) {
 		this.#data = new State();
+		this.#owner = owner;
+	}
+
+	get owner() {
+		return this.#owner;
 	}
 
 	registerAttribute(attributeName: string, attribute: DataAttribute) {
@@ -45,8 +51,8 @@ class StateManagerBase {
 
 export class StateManager extends StateManagerBase {
 
-	constructor(definition: StateDefinition = {}, context?: IStateManager) {
-		super();
+	constructor(owner: IView, definition: StateDefinition = {}, context?: IStateManager) {
+		super(owner);
 		for(let [attrName, attrOptions] of Object.entries(definition)) {
 			let attr: DataAttribute;
 			const value = attrOptions.initValue;
@@ -64,7 +70,7 @@ export class StateManager extends StateManagerBase {
 				//@ts-ignore
 				const Constructor = dataAttributeConstructors[attrOptions.type as any];
 				if(Constructor) {
-					attr = new Constructor(attrOptions);
+					attr = new Constructor(attrOptions, this.owner);
 				} else {
 					throw new StateError(`Data attribute constructor for type ${attrOptions.type} not found`);
 				}

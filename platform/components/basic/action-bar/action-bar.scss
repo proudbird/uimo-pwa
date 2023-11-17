@@ -3,4 +3,10 @@
 uimo-action-bar {
   @extend .spectrum-ActionBar;
 
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+  height: fit-content;
+  padding: 0;
+  margin-bottom: 16px;
 }

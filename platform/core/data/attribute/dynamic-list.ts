@@ -1,9 +1,12 @@
+import { IView } from '@/core/types';
+
 import { DataAttribute, IStateManager, StateManager } from '../state';
 
 import DataAttributeBase from './dataAttribute';
-import { CollectionDataAttributeChangeEvent } from '../events';
-import { StateDefinition } from '..';
+import { CollectionDataAttributeChangeEvent, CollectionDataAttributeClearEvent, CollectionDataAttributeUpdateEvent } from '../events';
+import { IMonoDataAttribute, StateDefinition } from '..';
 import Reference from '../../objects/reference';
+import StructureAttribute, { StructureAttributeType } from './structure';
 
 export type DynamicList = {};
 
@@ -13,6 +16,7 @@ export interface DynamicListAttributeOptions {
 	model: string;
 	limit?: number;
 	fields?: string;
+	orderBy?: string[];
 	selected?: string;
 }
 
@@ -42,6 +46,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 	#limit: number;
 	#offset: number = 0;
 	#fields: string;
+	#orderBy: string[];
 	#selected: string | undefined;
 	#cursor: string | undefined;
 	#portion: FetchPortion = 'first';
@@ -54,18 +59,36 @@ export default class DynamicListAttribute extends DataAttributeBase {
 	#isFullFromStart: boolean = true;
   #isFullFromEnd: boolean = false;
 
-	constructor({ cube, className, model, fields = '', limit = 30, selected }: DynamicListAttributeOptions, parent?: DataAttribute) {
-		super(parent);
+	constructor({ cube, className, model, fields = '', orderBy = [], limit = 30, selected }: DynamicListAttributeOptions, owner: IView, parent?: DataAttribute) {
+		super(owner, parent);
 
 		this.#cube = cube;
 		this.#className = className;
 		this.#model = model;
 		this.#limit = Math.max(6, limit);
 		this.#fields = fields;
+		this.#orderBy = orderBy;
 		this.#selected = selected;
 		this.#cursor = selected;
 
 		this.#fetchPromise = this.#fetchData(this.#onDataLoad.bind(this));
+
+		owner.on('create', (e: Event) => {
+			const instance = (e as CustomEvent).detail;
+			if(instance.cube === this.#cube && instance.className === this.#className && instance.model === this.#model) {
+				this.clear();
+				this.#cursor = instance.id;
+				this.#selected = instance.id;
+				this.#fetchData(this.#onDataLoad.bind(this));
+			}
+		})
+
+		owner.on('update', (e: Event) => {
+			const instance = (e as CustomEvent).detail;
+			if(instance.cube === this.#cube && instance.className === this.#className && instance.model === this.#model) {
+				this.dispatchEvent(new CollectionDataAttributeUpdateEvent(this, instance));
+			}
+		})
 	}
 
 	async #fetchData(callback: (data: any) => void) {
@@ -83,6 +106,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 					limit: this.#limit,
 					offset: this.#offset,
 					fields: this.#fields,
+					orderBy: this.#orderBy,
 					cursor: this.#cursor,
 					portion: this.#portion,
 				}
@@ -105,9 +129,10 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		if(this.#cursor && this.#portion === 'first') {
 			this.#data.push(data.entries);
 
-			this.#isFullFromStart = false;
+			this.#isFullFromStart = data.entries.length < this.#limit;
 
-			this.#pageIndex = 1;
+				this.#pageIndex = 1;
+				this.#portion = 'next';
 		} else if (this.#portion === 'prev') {
 
 
@@ -163,6 +188,10 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		return this.#isFullFromEnd;
 	}
 
+	get cursor(): string | undefined {
+		return this.#cursor;
+	}
+
 	getItemByIndex(index: number) {
 		return this.#buildItem(this.#provider.entries[index]);
 	}
@@ -185,7 +214,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		return item;
 	}
 
-	#buildItem(entry: any) {
+	#buildItem(entry: any): StructureAttributeType {
 		const definition: StateDefinition = {};
 		for(let [attrName, attr] of Object.entries<DataProviderAttribute>(this.#provider.attributes)) {
 			const record = entry[attr.index];
@@ -209,7 +238,9 @@ export default class DynamicListAttribute extends DataAttributeBase {
 			definition[attrName] = { type: attrType.toLocaleLowerCase(), initValue };
 		}
 
-		return (new StateManager(definition)) as IStateManager;
+		const structure = new StructureAttribute({ attributes: definition }, this.owner, this);
+
+		return structure as StructureAttributeType;
 	}
 
 	async nextPage() {
@@ -220,7 +251,11 @@ export default class DynamicListAttribute extends DataAttributeBase {
 
 		if(this.#cursor) {
 			if(this.#data.length) {
-				this.#cursor = this.getItemByPage(this.#data.length, this.#data.at(-1).length - 1).id?.value;
+				const page = this.#data.length;
+				const index = this.#data.at(-1).length - 1;
+				const idAttribute = this.getItemByPage(page, index)?.id as IMonoDataAttribute;
+
+				this.#cursor = idAttribute.value;
 			}
 		}
 
@@ -232,10 +267,25 @@ export default class DynamicListAttribute extends DataAttributeBase {
 
 		await this.#fetchPromise;
 
-		this.#cursor = this.getItemByPage(1, 0).Reference?.value.id;
+		const idAttribute = this.getItemByPage(1, 0)?.id as IMonoDataAttribute;
+		this.#cursor = idAttribute.value;
+
 		this.#portion = 'prev';
 
 		this.#fetchData(this.#onDataLoad.bind(this));
+	}
+
+	clear() {
+		this.#data = [];
+		this.#provider = {} as DynamicListProvider;
+		this.#cursor = undefined;
+		this.#offset = 0;
+		this.#pageIndex = 1;
+		this.#isFullFromStart = true;
+		this.#isFullFromEnd = false;
+		this.#portion = 'first';
+
+		this.dispatchEvent(new CollectionDataAttributeClearEvent(this));
 	}
 
 	[Symbol.iterator] = () => {
@@ -244,7 +294,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
     let done = false;
 
     let next = () => {
-			let value: IStateManager = {} as IStateManager;
+			let value: StructureAttributeType = {} as StructureAttributeType;
        if(count >= this.#provider.entries.length) {
           done = true;
        } else {
@@ -257,7 +307,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
     return { next };
   }
 
-	forEach(iteratee: (value: IStateManager, index: number) => boolean): void {
+	forEach(iteratee: (value: StructureAttributeType, index: number) => boolean): void {
 		let index = 0;
 		for(let item of this) {
 			if(iteratee(item, index++) === false) {

@@ -3,6 +3,7 @@ import { ChildTemplate, IComponent, IView, Template } from '@/core/types';
 import { IconComponent } from '@/types/components';
 
 import { specification, IWorkPanelComponent } from './work-panel.types';
+import { set } from 'yaml/dist/schema/yaml-1.1/set';
 
 @DefineComponent('work-panel')
 export default class WorkPanel extends Component<IWorkPanelComponent>(specification) {
@@ -77,7 +78,9 @@ export default class WorkPanel extends Component<IWorkPanelComponent>(specificat
 
     this.#viewsHash[viewId] = item;
 
-    view.on('close', closeHandler);
+    view.on('close', () => {
+      setTimeout(closeHandler, 100);
+    });
   }
 
   render(): Template {

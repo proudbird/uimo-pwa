@@ -41,7 +41,7 @@ export interface DataSpecification {
 export interface ComponentSpecification {
   readonly props: PropsSpecification;
   readonly data?: DataSpecification;
-  readonly events?: EventsSpecification;
+  // readonly events?: EventsSpecification;
 };
 
 /**
@@ -181,12 +181,14 @@ export type ComponentDescription = {
 	props? : Record<string, DataAttributeValue>;
 	state?: StateValues;
 	data?: DataAttributeValue;
+  events?: string[];
 };
 
 export type ComponentDefinition<D extends ComponentSpecification, C extends ComponentDescription = {}> = {
 	props: ComponentProps<D> & C['props'];
 	state?: C['state'];
 	data?: C['data'];
+  events?: C['events'];
 };
 
 export type ComponentPropsFromDefinition<T extends ComponentDefinition<any>> = {
@@ -214,7 +216,7 @@ export type ViewParams = WithDynamicProperties & {
 
 export type ViewCloseCallback = (result: any) => void;
 
-export interface IView {
+export interface IView extends EventTarget {
   id: string;
 	elements: Record<string, IComponent>;
 	node: IComponent;
@@ -223,6 +225,7 @@ export interface IView {
   reference: Reference | null;
   instance: InstanceAttribute | null;
   params: ViewParams;
+  parent: IView | null
   on(event: string, callback: EventListenerOrEventListenerObject): void;
 	show(view: IView, closeCallback: ViewCloseCallback): void;
   close: ViewCloseCallback

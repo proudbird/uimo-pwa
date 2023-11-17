@@ -15,6 +15,10 @@ export type JSXElementEvents<T extends HTMLElement = HTMLElement> = {
   [Event in keyof ElementEvents<T> as`e:${string & Event}`]?: string | ElementEvents<T>[Event];
 }
 
+export type JSXElementSpecificEvents<T extends ComponentDefinition<any>> = {
+  [Event in T['events'] as`e:${string & Event}`]?: string;
+}
+
 export type JSXElementDataSource = {
   'd:path'?: string;
   'd:source'?: DataSourceType;
@@ -27,6 +31,7 @@ export type JSXElement<T extends ComponentDefinition<any>, K extends HTMLElement
   JSXElementProps<ComponentPropsFromDefinition<T>> &
   JSXElementStyle & 
   JSXElementEvents<K> & 
+  JSXElementSpecificEvents<T> & 
   JSXElementDataSource &
   { 
     props?: ComponentPropsFromDefinition<T>;

@@ -11,5 +11,6 @@ export default {
 			],
 			defaultValue: 'none'
 		}
-	}
+	},
+	events: ['focus', 'select']
 } as const;

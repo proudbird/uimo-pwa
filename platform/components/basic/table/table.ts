@@ -1,6 +1,6 @@
 
 import { Component, DefineComponent } from '@/core';
-import { DynamicListAttribute } from '@/core/data';
+import { DataAttribute, DynamicListAttribute, IMonoDataAttribute } from '@/core/data';
 import { IView, type ComponentOptions } from '@/core/types';
 import { ChildTemplate } from '@/core/types';
 import Reference from '@/core/objects/reference';
@@ -8,6 +8,8 @@ import Reference from '@/core/objects/reference';
 import { specification, ITableComponent } from './table.types';
 import TableField from './table-field/table-field';
 import { set } from 'yaml/dist/schema/yaml-1.1/set';
+import ListAttribute from '@/core/data/attribute/list';
+import { CollectionDataAttributeUpdateEvent } from '@/core/data/events';
 
 @DefineComponent('table')
 export default class Table extends Component<ITableComponent, DynamicListAttribute>(specification) {
@@ -27,6 +29,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       resizePending: { type: 'boolean', initValue: false },
       resizeCursorPosition: { type: 'number', initValue: NaN },
       selectedItems: { type: 'list', initValue: owner.params.selectedItems },
+      editingElement: { type: 'variable' }
     };
 
     super({ config, stateDefinition, owner, ...rest });
@@ -43,14 +46,19 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
         scope: 'table',
         style: { gridTemplateColumns: `var(--tableTemplate)` }
       }, {
-        tagName: 'table-body',
-        alias: 'body',
-        scope: 'table',
+        tagName: 'box',
+        alias: 'bodyContainer',
+        className: 'body-container',
         children: [
           {
             tagName: 'div',
             alias: 'triggerAtStart',
             className: 'fetch-trigger start',
+          },
+          {
+            tagName: 'table-body',
+            alias: 'body',
+            scope: 'table',
           },
           {
             tagName: 'div',
@@ -89,11 +97,32 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     const templateVariableSetter = () => this.style.setProperty('--tableTemplate', this.state.template);
     templateVariableSetter();
     this.observe(this.$state.template, templateVariableSetter);
+
+    this.data.addEventListener('clear', () => {
+      this.elements.header.replaceChildren();
+      this.elements.bodyContainer.elements.body.replaceChildren();
+
+      this.#firstElement = null;
+      this.#firstElementTopOffset = 0;
+
+      this.elements.bodyContainer.elements.triggerAtStart.style.display = 'none';
+      this.elements.bodyContainer.elements.triggerAtEnd.style.display = 'none';
+    })
+
+    this.data.addEventListener('update', (e: Event) => {
+      const instance = (e as CollectionDataAttributeUpdateEvent).instance;
+      for(let [attrName, attr] of Object.entries<Record<string, DataAttribute>>(this.state.editingElement.value)) {
+        const edited = (instance.getAttribute(attrName) as IMonoDataAttribute);
+        if(edited) {
+          attr.value = edited.value;
+        }
+      }
+    })
   }
 
   private connectedCallback() {
     let options = {
-        root: this.elements.body,
+        root: this.elements.bodyContainer,
         rootMargin: '0px',
         threshold: 0.1
     }
@@ -108,7 +137,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     }
         
     let afterObserver = new IntersectionObserver(nextCallback, options);
-    let afterTriggerTarget = this.elements.body.elements.triggerAtEnd;
+    let afterTriggerTarget = this.elements.bodyContainer.elements.triggerAtEnd;
     afterObserver.observe(afterTriggerTarget!);
 
     const prevCallback: IntersectionObserverCallback = (entries, observer) => {
@@ -117,11 +146,11 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       }
       entries.forEach((entry) => {
         if(entry.isIntersecting) {
-          if(this.data.portion === 'next' && this.data.page === 1) {
+          if(this.data.portion === 'next' && this.data.page === 1 && this.data.length > this.data.limit) {
             return;
           }
 
-          this.#firstElement = this.elements.body.childNodes[1] as HTMLElement;
+          this.#firstElement = this.elements.bodyContainer.elements.body.childNodes[0] as HTMLElement;
           
           (this.data as DynamicListAttribute).prevPage();
         }
@@ -129,7 +158,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     }
         
     let startTriggerObserver = new IntersectionObserver(prevCallback, options);
-    let startTriggerTarget = this.elements.body.elements.triggerAtStart;
+    let startTriggerTarget = this.elements.bodyContainer.elements.triggerAtStart;
     startTriggerTarget && startTriggerObserver.observe(startTriggerTarget);
   }
 
@@ -138,9 +167,10 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     
     const itemSlot = (this.config.children as ChildTemplate[])?.find(slot => slot.tagName === 'fields');
     
-    const data = this.data as DynamicListAttribute;
+    const data =  this.data as DynamicListAttribute;
 
-    if(data.portion === 'first') {
+    this.data.selected && (this.state.selectedItems as ListAttribute).set(0, { id: this.data.selected });
+    if(!this.elements.header.childNodes.length) {
       ((itemSlot?.children || []) as ChildTemplate[]).forEach((fieldConfig, colIndex) => {
         this.elements.header.addElements({
           tagName: 'table-header-cell',
@@ -174,16 +204,16 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       
       let position: number | undefined;
       if(data.portion === 'prev') {
-        position = index + 1;
+        position = index;
       } else {
-        position = this.elements.body.childNodes.length - 1;
+        position = this.elements.bodyContainer.elements.body.childNodes.length;
       }
 
       const isSelected = isSelectionMode(this) && !!this.state.selectedItems.length && !!this.state.selectedItems.find((selected: Reference) => {
         return selected.id === item.Reference?.value.id
       });
       
-      this.elements.body.addElement({
+      this.elements.bodyContainer.elements.body.addElement({
         tagName: 'table-row',
         children: fieldConfigs,
         props: {
@@ -196,22 +226,22 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       }, { context: item, position });
 
       if(this.#firstElement) {
-        this.elements.body.elements.triggerAtStart.style.display = 'none';
+        this.elements.bodyContainer.elements.triggerAtStart.style.display = 'none';
         setTimeout(() => {
           this.#firstElement!.scrollIntoView({ block: 'start' });
-          this.elements.body.scrollBy(0, -this.#firstElementTopOffset);
+          this.elements.bodyContainer.elements.body.scrollBy(0, -this.#firstElementTopOffset);
         });
       } 
     }
 
-    if(!this.#firstElement && isFetchingDataFromMiddle(this) && data.page === 1) {
+    if(!this.#firstElement && isFetchingDataFromMiddle(this) && data.page === 1 && this.data.length > this.data.limit) {
       new ResizeObserver(() => {
-        (this.elements.body.childNodes[1] as HTMLElement).scrollIntoView({ block: 'start' });
-      }).observe(this.elements.body.childNodes[1] as HTMLElement)
+        (this.elements.bodyContainer.elements.body.childNodes[0] as HTMLElement).scrollIntoView({ block: 'start' });
+      }).observe(this.elements.bodyContainer.elements.body.childNodes[0] as HTMLElement)
     }
 
     if(!data.isFullFromStart) {
-      this.elements.body.elements.triggerAtStart.style.display = 'flex';
+      this.elements.bodyContainer.elements.triggerAtStart.style.display = 'flex';
     }
   }
 }
@@ -221,5 +251,5 @@ function isSelectionMode(table: Table): boolean {
 }
 
 function isFetchingDataFromMiddle(table: Table): boolean {
-  return !!table.state.selectedItems.length;
+  return !!table.data.cursor;
 }

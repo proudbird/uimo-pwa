@@ -1,3 +1,5 @@
+import { IView } from '@/core/types';
+
 import DataAttributeBase from './dataAttribute';
 import { DataAttributeChangeEvent } from '../events';
 import Reference from '../../objects/reference';
@@ -11,8 +13,8 @@ export default class ReferenceAttribute extends DataAttributeBase {
 	#value: Reference | null;
 	#prevValue: Reference | null;
 
-	constructor({ initValue = null }: ReferenceAttributeProps, parent?: DataAttribute) {
-		super(parent);
+	constructor({ initValue = null }: ReferenceAttributeProps, owner: IView, parent?: DataAttribute) {
+		super(owner, parent);
 		this.#value = this.#prevValue = initValue;
 	}
   

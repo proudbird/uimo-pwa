@@ -14,7 +14,12 @@ export default class TableField extends Component<ITableFieldComponent>(specific
         {
           tagName: 'div',
           props: {
-            innerHTML: (this.data as IMonoDataAttribute).value?.presentation || String((this.data as IMonoDataAttribute).value || '')
+            innerHTML: {
+              handler: () => {
+                return (this.data as IMonoDataAttribute).value?.presentation || String((this.data as IMonoDataAttribute).value || '')
+              },
+              dependencies: [this.data],
+            }
           },
         }
       ]

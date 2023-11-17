@@ -35,6 +35,8 @@ export default class TableRow extends Component<ITableRowComponent>(specificatio
             }
 
             return;
+          } else if (this.config.props?.selectionMode === 'none') {
+            this.scope.editingElement = this.data;
           }
 
           if(this.config.events?.select) {

@@ -174,7 +174,7 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 					element.innerHTML = childConfig;
 					continue;
 				}
-				if(childConfig.type === 'slot') continue;
+				if(childConfig.type === 'slot' || !childConfig || !Object.entries(childConfig).length) continue;
 				const child = buildElement({ parent, config: childConfig, module });
 				element.appendChild(child);
 			}

@@ -1,3 +1,4 @@
+import { IView } from '@/core/types';
 import { BooleanAttributeOptions } from './types';
 
 import { DataAttribute } from '../state';
@@ -15,8 +16,8 @@ export default class BooleanAttribute extends DataAttributeBase {
    * @param {BooleanAttributeOptions} options - The options for initializing the BooleanAttribute.
    * @param {boolean} options.initValue - The initial value for the BooleanAttribute. Default to false.
    */
-	constructor({ initValue = false }: BooleanAttributeOptions, parent?: DataAttribute) {
-		super(parent);
+	constructor({ initValue = false }: BooleanAttributeOptions, owner: IView, parent?: DataAttribute) {
+		super(owner, parent);
 		this.#value = this.#prevValue = initValue;
 	}
   

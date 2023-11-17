@@ -3,11 +3,13 @@ import StringAttribute from './string';
 import NumberAttribute from './number';
 import BooleanAttribute from './boolean';
 import DateAttribute from './date';
+import StructureAttribute from './structure';
 import ListAttribute from './list';
 import ReferenceAttribute from './reference';
 import InstanceAttribute from './instance';
 import DynamicListAttribute from './dynamic-list';
 import ElementAttribute from './element';
+import VariableAttribute from './variable';
 
 export default {
   unknown: UnknownAttribute,
@@ -15,9 +17,11 @@ export default {
   number: NumberAttribute,
   boolean: BooleanAttribute,
   date: DateAttribute,
+  structure: StructureAttribute,
   list: ListAttribute,
   reference: ReferenceAttribute,
   Instance: InstanceAttribute,
   DynamicList: DynamicListAttribute,
-  Element: ElementAttribute
+  Element: ElementAttribute,
+  variable: VariableAttribute
 };

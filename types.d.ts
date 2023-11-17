@@ -2,6 +2,8 @@
 import { JSXElement } from './platform/types/jsx';
 
 import { 
+  ActionBarComponent,
+  ActionButtonComponent,
   BoxComponent,
   ButtonComponent,
   CheckboxFieldComponent,
@@ -22,7 +24,7 @@ import {
 } from './platform/types/components';
 
 declare namespace JSX {
-  interface IntrinsicElements {
+  interface IntrinsicElements<V extends IView = any> {
     'view': JSXElement<ViewComponent>;
     'button': JSXElement<ButtonComponent>;
     'box': JSXElement<BoxComponent>;
@@ -39,6 +41,8 @@ declare namespace JSX {
     'tabs-item': JSXElement<TabsItemComponent>;
     'menu': JSXElement<MenuComponent>;
     'menu-item': JSXElement<MenuItemComponent>;
+    'action-bar': JSXElement<ActionBarComponent>;
+    'action-button': JSXElement<ActionButtonComponent>;
     'work-panel': JSXElement<WorkPanelComponent>;
     'slot:fields': JSXElement<{}>;
     'slot:context-menu': JSXElement<{}>;

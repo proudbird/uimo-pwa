@@ -1,5 +1,5 @@
 import { Component, DefineComponent } from '@/core';
-import { Template } from '@/core/types';
+import { ChildTemplate, Template } from '@/core/types';
 
 import { specification, IActionButtonComponent } from './action-button.types';
 
@@ -14,7 +14,16 @@ export default class ActionButton extends Component<IActionButtonComponent>(spec
 			attributes: {
 				role: 'button',
 				disabled: !!this.props.disabled
-			}
+			},
+			children: [
+				...[this.props.label ? {
+					tagName: 'label',
+					props: {
+						value: this.props.label || ''
+					},
+				} : {} as ChildTemplate],
+				...(this.config.children as ChildTemplate[] || [])
+			]
 		};
 	}
 }

@@ -1,5 +1,12 @@
 export default {
   props: {
+		label: {
+			title: 'Label',
+			mutable: true,
+			responsive: true,
+			type: 'string',
+			defaultValue: false
+		},
     size: {
 			title: 'Size',
 			mutable: true,

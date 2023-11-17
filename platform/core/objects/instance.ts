@@ -21,4 +21,16 @@ export default class Instance {
   get id(): string {
     return this.#id;
   }
+
+  get cube(): string {  
+    return this.#cube;
+  }
+
+  get className(): string {
+    return this.#className;
+  }
+
+  get model(): string {
+    return this.#model;
+  }
 }

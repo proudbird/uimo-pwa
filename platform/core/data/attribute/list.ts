@@ -1,3 +1,5 @@
+import { IView } from '@/core/types';
+
 import { DataAttribute, IStateManager } from '../state';
 
 import DataAttributeBase from './dataAttribute';
@@ -12,8 +14,8 @@ export interface ListAttributeOptions {
 export default class ListAttribute extends DataAttributeBase {
 	#entries: any[] = [];
 
-	constructor({ initValue}: ListAttributeOptions, parent?: DataAttribute) {
-		super(parent);
+	constructor({ initValue}: ListAttributeOptions, owner: IView, parent?: DataAttribute) {
+		super(owner, parent);
 
 		if(initValue) {
 			if(Array.isArray(initValue)) {

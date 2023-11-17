@@ -9,7 +9,7 @@ export default class Label extends Component<ILabelComponent>(specification) {
 		return {
 			...this.config, 
 			props: {
-				innerHTML: this.props?.value || this.tagName
+				innerHTML: this.props?.value || ''
 			},
 		};
 	}

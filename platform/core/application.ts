@@ -45,7 +45,7 @@ export default class Application {
     return this.#viewFrame || this.#appFrame!;
   }
 
-  async showView(viewId: string, params?: any, target: 'app-frame' | 'view-frame' = 'view-frame', closeCallback?: (result: any) => void) {
+  async showView(viewId: string, params?: any, target: 'app-frame' | 'view-frame' = 'view-frame') {
     //@ts-ignore
     if(!window.views[viewId]) {
       await loadModule(`view/${viewId}`);
@@ -79,8 +79,9 @@ export default class Application {
     // we need to copy config because it can be modified later
     // but we need to keep original config for future use
     const configCopy = JSON.parse(JSON.stringify(layout));
+    const dataCopy = JSON.parse(JSON.stringify(data));
 
-    const view = new View(viewId, configCopy, data, getModule, params);
+    const view = new View(viewId, configCopy, dataCopy, getModule, params);
     // TODO: we need change the way of creating view, because now 
     // every time we want show a view we create a new instance of it,
     // even if it is in memory already

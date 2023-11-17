@@ -84,9 +84,11 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			this.#parent = parent || { config: {} } as IComponent;
 			this.#config = config;
 			this.#id = this.#config.id || genId();
-			this.#state = new StateManager(stateDefinition);
-			this.#scope = (this.#parent.constructor as typeof Base).scopeName === (this.constructor as typeof Base).scopeName ? (new StateManager()).merge([this.#parent.$scope, this.#parent.$state]) : new StateManager();
-			this.#context = context || new StateManager();
+			this.#state = new StateManager(owner, stateDefinition);
+			this.#scope = (this.#parent.constructor as typeof Base).scopeName === (this.constructor as typeof Base).scopeName 
+				? (new StateManager(owner)).merge([this.#parent.$scope, this.#parent.$state]) 
+				: new StateManager(owner);
+			this.#context = context || new StateManager(owner);
 			this.#props = {} as IState;
 			this.#module = module || {};
 			this.#owner = owner;
@@ -273,7 +275,7 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 							this.innerHTML = childConfig;
 							continue;
 						}
-						if(childConfig.type === 'slot') continue;
+						if(!childConfig || !Object.entries(childConfig).length || childConfig?.type === 'slot') continue;
 						const child = buildElement({ parent: this, config: childConfig, context: this.#context, module: this.#module });
 						this.appendChild(child);
 						if(childConfig.alias) {
@@ -291,8 +293,8 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			} else {
 				this.appendChild(element);
 			}
-			if(config.alias) {
-				this.#elements[config.alias] = element as IComponent;
+			if(config!.alias) {
+				this.#elements[config!.alias] = element as IComponent;
 			}
 
 			return element;
@@ -306,8 +308,8 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			for(const elementConfig of configs) {
 				const element = buildElement({ parent: this, config: elementConfig, module: this.#module });
 				this.appendChild(element);
-				if(elementConfig.alias) {
-					this.#elements[elementConfig.alias] = element as IComponent;
+				if(elementConfig!.alias) {
+					this.#elements[elementConfig!.alias] = element as IComponent;
 				}
 			}
 		}

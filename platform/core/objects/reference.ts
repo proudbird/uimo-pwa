@@ -1,4 +1,6 @@
 import { default as ApplicationClass} from '../application';
+import { ViewParams } from '@/core/types';
+
 declare var Application: ApplicationClass;
 
 interface ReferenceProps {
@@ -44,10 +46,10 @@ export default class Reference {
     return this.#presentation;
   }
 
-	show(): void {
+	show(params?: ViewParams): void {
 		Application.showView(
 			`${this.#cube}.${this.#className}.${this.#model}.Instance`, 
-			{ reference: this }
+			{ reference: this, ...params }
 		)
 	}
 

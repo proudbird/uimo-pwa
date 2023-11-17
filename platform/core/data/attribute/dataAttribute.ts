@@ -1,3 +1,5 @@
+import { IView } from "@/core/types";
+
 import { DataAttribute } from "../state";
 
 /**
@@ -9,7 +11,7 @@ export default class DataAttributeBase extends EventTarget {
 	 */
 	readonly DataAttribute = true;
 
-	constructor(readonly parent?: DataAttribute) {
+	constructor(readonly owner: IView, readonly parent?: DataAttribute) {
 		super();
 	}
 

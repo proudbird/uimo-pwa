@@ -23,6 +23,7 @@ export default class View extends EventTarget implements IView {
 	#instance: InstanceAttribute | null = null;
 	#reference: Reference | null = null;
 	#params: ViewParams;
+	#parent: View | null = null;
 	#listeners: Record<string, EventListenerOrEventListenerObject> = {};
 
 	constructor(id: string, config: Template, contextDefinition: StateDefinition, getModule: InitViewModuleCallback, params?: ViewParams) {
@@ -31,6 +32,8 @@ export default class View extends EventTarget implements IView {
 		this.#id = id;
 		this.#module = getModule(this);
 		this.#params = params || {};
+
+		this.#parent = params?.parent || null;
 
 		if(params?.reference) {
 			const instanceDefinition = contextDefinition.instance;
@@ -42,7 +45,7 @@ export default class View extends EventTarget implements IView {
 			contextDefinition.list.selected = params.selectedItems[0].id;
 		}
 
-		this.#state = new StateManager(contextDefinition);
+		this.#state = new StateManager(this, contextDefinition);
 		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
 		this.#instance = this.#state['instance'];
 
@@ -87,6 +90,10 @@ export default class View extends EventTarget implements IView {
 
 	get params(): ViewParams {
 		return this.#params;
+	}
+
+	get parent(): View | null {
+		return this.#parent;
 	}
 
 	on(event: string, callback: EventListenerOrEventListenerObject) {

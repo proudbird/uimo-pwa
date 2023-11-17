@@ -5,6 +5,7 @@ import DateAttribute from './attribute/date';
 import ReferenceAttribute from './attribute/reference';
 import DynamicListAttribute, { DynamicList } from './attribute/dynamic-list';
 import Reference from '../objects/reference';
+import { StructureAttributeType } from './attribute/structure';
 
 export {
   StringAttribute,
@@ -28,13 +29,13 @@ export interface IMonoDataAttribute extends IDataAttribute {
 }
 
 export interface IPolyDataAttribute extends IDataAttribute {
-  [Symbol.iterator](): Iterator<IStateManager>;
+  [Symbol.iterator](): Iterator<any>;
   // page: number;
   // limit: number;
   length: number;
   // selected: string | undefined;
   // direction: 'next' | 'prev' | undefined
-  forEach(iteratee: (value: IStateManager, index: number) => boolean | void): void;
+  forEach(iteratee: (value: any, index: number) => boolean | void): void;
   // getItemByIndex(index: number): IStateManager;
 	// getItemByPage(page: number, index: number): IStateManager;
   // nextPage(): void;
