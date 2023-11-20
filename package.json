@@ -38,11 +38,19 @@
     "@types/lodash.get": "^4.4.8",
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
+    "@webpack-cli/generators": "^3.0.7",
+    "css-loader": "^6.8.1",
     "eslint": "^8.43.0",
+    "mini-css-extract-plugin": "^2.7.6",
     "npm-run-all": "^4.1.5",
     "sass": "^1.62.1",
+    "sass-loader": "^13.3.2",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.1",
     "typescript": "^5.0.2",
-    "vite": "^4.3.2"
+    "vite": "^4.3.2",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   },
   "scripts": {
     "dev": "vite",
@@ -54,6 +62,7 @@
     "lint": "eslint . --fix",
     "preinstall": "npm -prefix ./controller install",
     "reg_cli": "ln -s bin/build/uimo.js node_modules/.bin/uimo",
-    "add": "node ./scripts/add-component.js $1"
+    "add": "node ./scripts/add-component.js $1",
+    "webpack": "webpack --config webpack.config.js -w"
   }
 }
