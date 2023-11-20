@@ -10,7 +10,7 @@ export default class Button extends Component<IButtonComponent>(specification) {
 			...this.config,
 			className: {
 				handler: () => {
-					return `size-${this.props.size} variant-accent treatment-fill ${this.state.processing ? 'processing' : ''}`;}
+					return `size-${this.props.size} variant-${this.props.variant} treatment-${this.props.treatment} ${this.state.processing ? 'processing' : ''}`;}
 			},
 			attributes: {
 				role: 'button',

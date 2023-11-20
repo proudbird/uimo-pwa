@@ -16,4 +16,8 @@ uimo-field-label {
   &.size-large > label {
     @extend .spectrum-FieldLabel--sizeL;
   }
+
+  &.position-left > label {
+    @extend .spectrum-FieldLabel--left;
+  }
 }

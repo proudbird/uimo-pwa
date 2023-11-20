@@ -12,10 +12,12 @@ export default {
 			mutable: true,
 			responsive: true,
 			type: [
-				{ value: 'default', title: 'Default', default: true },
 				{ value: 'primary', title: 'Primary' },
+				{ value: 'secondary', title: 'Secondary' },
+				{ value: 'accent', title: 'Accent' },
 				{ value: 'negative', title: 'Negative' },
-			]
+			],
+			defaultValue: 'primary'
 		},
 		size: {
 			title: 'Size',
@@ -23,7 +25,7 @@ export default {
 			responsive: true,
 			type: [
 				{ value: 'small', title: 'Small' },
-				{ value: 'medium', title: 'Medium', default: true },
+				{ value: 'medium', title: 'Medium' },
 				{ value: 'large', title: 'Large' },
 			],
 			defaultValue: 'medium'
@@ -33,9 +35,10 @@ export default {
 			mutable: true,
 			responsive: true,
 			type: [
-				{ value: 'fill', title: 'Fill', default: true },
+				{ value: 'fill', title: 'Fill' },
 				{ value: 'outline', title: 'Outline' },
-			]
+			],
+			defaultValue: 'fill'
 		},
 		disabled: {
 			title: 'Disabled',

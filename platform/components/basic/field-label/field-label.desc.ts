@@ -6,6 +6,16 @@ export default {
 			responsive: true,
 			type: 'string'
 		},
+		position: {
+			title: 'Label Position',
+			mutable: true,
+			responsive: true,
+			type: [
+				{ value: 'left', title: 'Left' },
+				{ value: 'top', title: 'Top' },
+			],
+			defaultValue: 'top'
+		},
 		for: {
 			title: 'For input',
 			type: 'string'

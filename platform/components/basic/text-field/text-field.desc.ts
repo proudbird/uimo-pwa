@@ -6,6 +6,16 @@ export default {
 			responsive: true,
 			type: 'string'
 		},
+		labelPosition: {
+			title: 'Label Position',
+			mutable: true,
+			responsive: true,
+			type: [
+				{ value: 'left', title: 'Left' },
+				{ value: 'top', title: 'Top' },
+			],
+			defaultValue: 'top'
+		},
 		value: {
 			title: 'Value',
 			mutable: true,
@@ -18,7 +28,7 @@ export default {
 			responsive: true,
 			type: [
 				{ value: 'small', title: 'Small' },
-				{ value: 'medium', title: 'Medium', default: true },
+				{ value: 'medium', title: 'Medium' },
 				{ value: 'large', title: 'Large' },
 			],
 			defaultValue: 'medium'

@@ -16,13 +16,14 @@ export default class TextField extends Component<ITextFieldComponent>(specificat
 			},
 			className: {
 				handler: () => {
-					return `size-${this.props.size}`;}
+					return `size-${this.props.size} label-${this.props.labelPosition}`;}
 			},
 			children: [{
 				tagName: 'field-label',
 				props: {
 					value: this.props.label,
 					size: this.props.size,
+					position: this.props.labelPosition,
 					for: inputId
 				}
 			},{

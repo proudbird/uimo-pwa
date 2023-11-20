@@ -10,7 +10,7 @@ export default class FieldLabel extends Component<IFieldLabelComponent>(specific
 			...this.config, 
 			className: {
 				handler: () => {
-					return `size-${this.props.size}`;}
+					return `size-${this.props.size} position-${this.props.position}`;}
 			},
 			children: [{
 				tagName: 'native:label',

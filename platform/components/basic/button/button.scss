@@ -15,12 +15,28 @@ uimo-button {
     @extend .spectrum-Button--sizeL;
   }
 
+  &.variant-primary {
+    @extend .spectrum-Button--primary;
+  }
+
+  &.variant-secondary {
+    @extend .spectrum-Button--secondary;
+  }
+
   &.variant-accent {
     @extend .spectrum-Button--accent;
   }
 
+  &.variant-negative {
+    @extend .spectrum-Button--negative;
+  }
+
   &.treatment-fill {
     @extend .spectrum-Button--fill;
+  }
+
+  &.treatment-outline {
+    @extend .spectrum-Button--outline;
   }
 
   &.processing {

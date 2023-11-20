@@ -88,7 +88,7 @@ export default class TableHeaderCell extends Component<ITableHeaderCellComponent
                   const filterViewConfig: Template = {
                     modal: true,
                     style: {
-                      width: '400px',
+                      width: '300px',
                       top: rect.y + rect.height + 'px',
                       left: rect.x + 'px',
                       padding: '16px',
@@ -99,7 +99,9 @@ export default class TableHeaderCell extends Component<ITableHeaderCellComponent
                         tagName: 'text-field',
                         alias: 'filterField',
                         props: {
-                          label: 'Look for'
+                          label: 'Look for',
+                          size: 'small',
+                          // labelPosition: 'left',
                         },
                         data: {
                           path: 'value'
@@ -113,16 +115,37 @@ export default class TableHeaderCell extends Component<ITableHeaderCellComponent
                         }
                       },
                       {
-                        tagName: 'button',
+                        tagName: 'box',
                         style: {
-                          width: '100px',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'flex-end',
+                          gap: '8px',
                         },
-                        props: {
-                          label: 'Find'
-                        },
-                        events: {
-                          click: handleAssign
-                        }
+                        children: [
+                          {
+                            tagName: 'button',
+                            props: {
+                              label: 'Assign',
+                              treatment: 'outline',
+                              size: 'small'
+                            },
+                            events: {
+                              click: handleAssign
+                            }
+                          },
+                          {
+                            tagName: 'button',
+                            props: {
+                              label: 'Cancel',
+                              variant: 'secondary',
+                              size: 'small'
+                            },
+                            events: {
+                              click: () => (this.#filterView!.node as Modal).close()
+                            }
+                          }
+                        ]
                       }
                     ]
                   };
