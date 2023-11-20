@@ -88,12 +88,20 @@ export default class Application {
 
     if(target === 'view-frame') {
       this.viewFrame.show(view);
+
+      let key = '';
+      if(view.reference) {
+        key = `&key=${view.reference.id}`;
+      }
+
+      window.history.pushState({ viewId: viewId }, "", `/app/${this.#id}?view=${viewId}${key}`);
     } else {
       this.appFrame.show(view);
     }
 
     this.#views[viewId] = view;
     // TODO: we need to remove view from memory when it is closed
+
    
     return view;
   }
