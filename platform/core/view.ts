@@ -3,7 +3,6 @@ import {
 	IView, 
 	InitViewModuleCallback, 
 	Template, 
-	ViewCloseCallback, 
 	ViewModule,
 	ViewParams
 } from '@/core/types';
@@ -12,6 +11,7 @@ import { StateDefinition } from '@/core/data';
 import { IState, IStateManager, StateManager } from '@/core/data/state';
 
 import ViewElement from '@/components/basic/view';
+import ModalView from '@/components/basic/modal';
 import InstanceAttribute from './data/attribute/instance';
 import Reference from './objects/reference';
 
@@ -46,7 +46,14 @@ export default class View extends EventTarget implements IView {
 		}
 
 		this.#state = new StateManager(this, contextDefinition);
-		this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
+
+		if(config.modal) {
+			this.#node = new ModalView({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
+		} else 
+		{
+			this.#node = new ViewElement({ owner: this, parent: this.node, config, context: this.#state, module: this.#module });
+		}
+
 		this.#instance = this.#state['instance'];
 
 		for(const attrName of Object.getOwnPropertyNames(this.#state)) {

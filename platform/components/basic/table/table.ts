@@ -1,21 +1,25 @@
 
 import { Component, DefineComponent } from '@/core';
 import { DataAttribute, DynamicListAttribute, IMonoDataAttribute } from '@/core/data';
-import { IView, type ComponentOptions } from '@/core/types';
+import { type ComponentOptions, IComponent } from '@/core/types';
 import { ChildTemplate } from '@/core/types';
 import Reference from '@/core/objects/reference';
 
 import { specification, ITableComponent } from './table.types';
-import TableField from './table-field/table-field';
-import { set } from 'yaml/dist/schema/yaml-1.1/set';
 import ListAttribute from '@/core/data/attribute/list';
 import { CollectionDataAttributeUpdateEvent } from '@/core/data/events';
 
 @DefineComponent('table')
 export default class Table extends Component<ITableComponent, DynamicListAttribute>(specification) {
 
+  #body: IComponent | null = null;
+  #header: IComponent | null = null;
+  #triggerAtStart: HTMLElement | null = null;
+  #triggerAtEnd: HTMLElement | null = null;
   #firstElement: HTMLElement | null = null;
   #firstElementTopOffset: number = 0;
+
+  static scopeName = 'table';
 
   constructor({ config, stateDefinition, owner, ...rest }: ComponentOptions) {
     config = config || {};
@@ -29,84 +33,100 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       resizePending: { type: 'boolean', initValue: false },
       resizeCursorPosition: { type: 'number', initValue: NaN },
       selectedItems: { type: 'list', initValue: owner.params.selectedItems },
-      editingElement: { type: 'variable' }
+      editingElement: { type: 'variable' },
+      filters: { type: 'list', initValue: [] },
     };
 
     super({ config, stateDefinition, owner, ...rest });
     
     this.addElements([
       {
-        tagName: 'div',
-        alias: 'container',
+        tagName: 'table-filter-panel',
+        alias: 'filtersPanel',
+        scope: 'table',
+        data: this.state.filters
+      },
+      {
+        tagName: 'box',
+        alias: 'tableContainer',
         scope: 'table',
         className: 'table-container',
-      }, {
-        tagName: 'table-header',
-        alias: 'header',
-        scope: 'table',
-        style: { gridTemplateColumns: `var(--tableTemplate)` }
-      }, {
-        tagName: 'box',
-        alias: 'bodyContainer',
-        className: 'body-container',
         children: [
           {
-            tagName: 'div',
-            alias: 'triggerAtStart',
-            className: 'fetch-trigger start',
-          },
-          {
-            tagName: 'table-body',
-            alias: 'body',
+            tagName: 'table-header',
+            alias: 'header',
             scope: 'table',
-          },
-          {
-            tagName: 'div',
-            alias: 'triggerAtEnd',
-            className: 'fetch-trigger end',
-            style: { 
-              display: { 
-                handler: () => {
-                  const shouldDisplay = !this.data.isFullFromEnd;
-                  const value = shouldDisplay ? 'flex' : 'none';
-                  
-                  return value;
-                }, 
-                dependencies: [this.data] 
+            style: { gridTemplateColumns: `var(--tableTemplate)` }
+          }, {
+            tagName: 'box',
+            scope: 'table',
+            alias: 'bodyContainer',
+            className: 'body-container',
+            children: [
+              {
+                tagName: 'div',
+                alias: 'triggerAtStart',
+                className: 'fetch-trigger start',
+              },
+              {
+                tagName: 'table-body',
+                alias: 'body',
+                scope: 'table',
+              },
+              {
+                tagName: 'div',
+                alias: 'triggerAtEnd',
+                className: 'fetch-trigger end',
+                style: { 
+                  display: { 
+                    handler: () => {
+                      const shouldDisplay = !this.data.isFullFromEnd;
+                      const value = shouldDisplay ? 'flex' : 'none';
+                      
+                      return value;
+                    }, 
+                    dependencies: [this.data] 
+                  }
+                },
               }
-            },
+            ]
+          }, {
+            tagName: 'div',
+            scope: 'table',
+            className: 'table-resize-indicator',
+            style: {
+              display: {
+                handler: () => this.state.resizeCursorPosition && this.state.resizePending ? 'block' : 'none',
+                dependencies: [this.$state.resizeCursorPosition, this.$state.resizePending]
+              },
+              left: {
+                handler: () => `${this.state.resizeCursorPosition - this.getBoundingClientRect().left - 2}px`,
+                dependencies: [this.$state.resizeCursorPosition]
+              },
+            }
           }
         ]
-      }, {
-        tagName: 'div',
-        scope: 'table',
-        className: 'table-resize-indicator',
-        style: {
-          display: {
-            handler: () => this.state.resizeCursorPosition && this.state.resizePending ? 'block' : 'none',
-            dependencies: [this.$state.resizeCursorPosition, this.$state.resizePending]
-          },
-          left: {
-            handler: () => `${this.state.resizeCursorPosition - this.getBoundingClientRect().left - 2}px`,
-            dependencies: [this.$state.resizeCursorPosition]
-          },
-        }
       }
     ]);
+
+    this.#header = this.elements.tableContainer.elements.header;
+    this.#body = this.elements.tableContainer.elements.bodyContainer.elements.body;
+    this.#triggerAtStart = this.elements.tableContainer.elements.bodyContainer.elements.triggerAtStart;
+    this.#triggerAtEnd = this.elements.tableContainer.elements.bodyContainer.elements.triggerAtEnd;
 
     const templateVariableSetter = () => this.style.setProperty('--tableTemplate', this.state.template);
     templateVariableSetter();
     this.observe(this.$state.template, templateVariableSetter);
 
     this.data.addEventListener('clear', () => {
-      this.elements.header.replaceChildren();
-      this.elements.bodyContainer.elements.body.replaceChildren();
+      this.#header!.replaceChildren();
+      this.#body!.replaceChildren();
 
       this.#firstElement = null;
       this.#firstElementTopOffset = 0;
 
-      this.elements.bodyContainer.elements.triggerAtStart.style.display = 'none';
-      this.elements.bodyContainer.elements.triggerAtEnd.style.display = 'none';
+      this.#triggerAtStart!.style.display = 'none';
+      this.#triggerAtEnd!.style.display = 'none';
     })
 
     this.data.addEventListener('update', (e: Event) => {
@@ -117,7 +137,30 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
           attr.value = edited.value;
         }
       }
-    })
+    });
+    
+    (this.state.filters as ListAttribute).addEventListener('change', () => {
+      const dataAttributes = (this.data as DynamicListAttribute).provider.attributes;
+      const filters = [];
+      for(const filter of (this.$state.filters as ListAttribute)) {
+        let additionalLevel = ''
+        const attrDefinition = dataAttributes[filter.id];
+        if(attrDefinition.type.dataType === 'FK') {
+          additionalLevel = `.Name`
+        }
+
+        let filterValue = '';
+        if(filter.value) {
+          filterValue = `%${filter.value}%`;
+        }
+
+        filters.push({
+          iLike: [`${(this.data as DynamicListAttribute).model}.${filter.id}${additionalLevel}`, filterValue]
+        });
+      }
+
+      (this.data as DynamicListAttribute).setFilters(filters);
+    });
   }
 
   private connectedCallback() {
@@ -137,7 +180,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     }
         
     let afterObserver = new IntersectionObserver(nextCallback, options);
-    let afterTriggerTarget = this.elements.bodyContainer.elements.triggerAtEnd;
+    let afterTriggerTarget = this.#triggerAtEnd;
     afterObserver.observe(afterTriggerTarget!);
 
     const prevCallback: IntersectionObserverCallback = (entries, observer) => {
@@ -150,7 +193,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
             return;
           }
 
-          this.#firstElement = this.elements.bodyContainer.elements.body.childNodes[0] as HTMLElement;
+          this.#firstElement = this.#body!.childNodes[0] as HTMLElement;
           
           (this.data as DynamicListAttribute).prevPage();
         }
@@ -158,7 +201,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     }
         
     let startTriggerObserver = new IntersectionObserver(prevCallback, options);
-    let startTriggerTarget = this.elements.bodyContainer.elements.triggerAtStart;
+    let startTriggerTarget = this.#triggerAtStart;
     startTriggerTarget && startTriggerObserver.observe(startTriggerTarget);
   }
 
@@ -170,13 +213,16 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     const data =  this.data as DynamicListAttribute;
 
     this.data.selected && (this.state.selectedItems as ListAttribute).set(0, { id: this.data.selected });
-    if(!this.elements.header.childNodes.length) {
+    if(!this.#header!.childNodes.length) {
       ((itemSlot?.children || []) as ChildTemplate[]).forEach((fieldConfig, colIndex) => {
-        this.elements.header.addElements({
+        this.#header!.addElements({
           tagName: 'table-header-cell',
+          alias: fieldConfig.alias,
           scope: 'table',
           index: colIndex,
-          props: { title: fieldConfig?.props?.title || ''},
+          props: { 
+            title: fieldConfig?.props?.title || '',
+          },
         });
       });
     }
@@ -206,14 +252,14 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       if(data.portion === 'prev') {
         position = index;
       } else {
-        position = this.elements.bodyContainer.elements.body.childNodes.length;
+        position = this.#body!.childNodes.length;
       }
 
       const isSelected = isSelectionMode(this) && !!this.state.selectedItems.length && !!this.state.selectedItems.find((selected: Reference) => {
         return selected.id === item.Reference?.value.id
       });
       
-      this.elements.bodyContainer.elements.body.addElement({
+      this.#body!.addElement({
         tagName: 'table-row',
         children: fieldConfigs,
         props: {
@@ -226,22 +272,22 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
       }, { context: item, position });
 
       if(this.#firstElement) {
-        this.elements.bodyContainer.elements.triggerAtStart.style.display = 'none';
+        this.#triggerAtStart!.style.display = 'none';
         setTimeout(() => {
           this.#firstElement!.scrollIntoView({ block: 'start' });
-          this.elements.bodyContainer.elements.body.scrollBy(0, -this.#firstElementTopOffset);
+          this.#body!.scrollBy(0, -this.#firstElementTopOffset);
         });
       } 
     }
 
     if(!this.#firstElement && isFetchingDataFromMiddle(this) && data.page === 1 && this.data.length > this.data.limit) {
       new ResizeObserver(() => {
-        (this.elements.bodyContainer.elements.body.childNodes[0] as HTMLElement).scrollIntoView({ block: 'start' });
-      }).observe(this.elements.bodyContainer.elements.body.childNodes[0] as HTMLElement)
+        (this.#body!.childNodes[0] as HTMLElement).scrollIntoView({ block: 'start' });
+      }).observe(this.#body!.childNodes[0] as HTMLElement)
     }
 
     if(!data.isFullFromStart) {
-      this.elements.bodyContainer.elements.triggerAtStart.style.display = 'flex';
+      this.#triggerAtStart!.style.display = 'flex';
     }
   }
 }

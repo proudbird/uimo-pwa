@@ -1,0 +1,19 @@
+@import '~@spectrum-css/modal/dist/index-vars';
+@import '~@spectrum-css/popover/dist/index-vars';
+
+uimo-modal {
+  @extend .spectrum-Modal-wrapper;
+  visibility: visible;
+  pointer-events: all;
+
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  & > .modal-box {
+    @extend .spectrum-Modal, .is-open, .spectrum-Popover;
+
+    position: relative;
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+}

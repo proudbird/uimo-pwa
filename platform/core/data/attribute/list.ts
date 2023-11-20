@@ -59,7 +59,7 @@ export default class ListAttribute extends DataAttributeBase {
 	remove(value: any): ListAttribute {
 		const index = this.#entries.indexOf(value);
 		if(index > -1) {
-			this.removeByIndex(index);
+			this.#entries.splice(index, 1);
 		}
 
 		this.dispatchEvent(new CollectionDataAttributeChangeEvent(this, value));
@@ -79,6 +79,17 @@ export default class ListAttribute extends DataAttributeBase {
 		this.#entries[index] = value;
 
 		this.dispatchEvent(new CollectionDataAttributeChangeEvent(this, value));
+
+		return this;
+	}
+
+	replace(value: any, newValue: any): ListAttribute {
+		const index = this.#entries.indexOf(value);
+		if(index > -1) {
+			this.set(index, newValue);
+		}
+
+		this.dispatchEvent(new CollectionDataAttributeChangeEvent(this, newValue));
 
 		return this;
 	}
@@ -120,7 +131,7 @@ export default class ListAttribute extends DataAttributeBase {
     return { next };
   }
 
-	forEach(iteratee: (value: IStateManager, index: number) => boolean): void {
+	forEach(iteratee: (value: IStateManager, index: number) => boolean | void): void {
 		let index = 0;
 		for(let item of this) {
 			if(iteratee(item, index++) === false) {

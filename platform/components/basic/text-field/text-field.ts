@@ -10,6 +10,10 @@ export default class TextField extends Component<ITextFieldComponent>(specificat
 		const inputId = genId();
 		return {
 			...this.config,
+			attributes: {
+				...this.config.attributes,
+				'tabindex': 0
+			},
 			className: {
 				handler: () => {
 					return `size-${this.props.size}`;}
@@ -23,12 +27,19 @@ export default class TextField extends Component<ITextFieldComponent>(specificat
 				}
 			},{
 				tagName: 'text-input',
+				alias: 'input',
 				props: {
 					inputId,
 					size: this.props.size
 				},
 				data: this.data,
-			}]
+			}],
+			events: {
+				...this.config.events,
+				focus: () => {
+					this.elements.input?.focus();
+				}
+			}
 		};
 	}
 }

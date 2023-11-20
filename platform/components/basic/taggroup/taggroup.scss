@@ -1,0 +1,5 @@
+@import '~@spectrum-css/taggroup/dist/index-vars';
+
+uimo-tag-group {
+  @extend .spectrum-TagGroup;
+}

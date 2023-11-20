@@ -10,6 +10,10 @@ import StructureAttribute, { StructureAttributeType } from './structure';
 
 export type DynamicList = {};
 
+export type DynamicListFilter = {
+	iLike: string[];
+};
+
 export interface DynamicListAttributeOptions {
 	cube: string;
 	className: string;
@@ -33,7 +37,7 @@ export type DataProviderAttribute = {
 };
 
 export type DynamicListProvider = {
-	attributes: any[];
+	attributes: any;
 	entries: any[];
 }
 
@@ -46,6 +50,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 	#limit: number;
 	#offset: number = 0;
 	#fields: string;
+	#filters: DynamicListFilter[] = [];
 	#orderBy: string[];
 	#selected: string | undefined;
 	#cursor: string | undefined;
@@ -106,6 +111,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 					limit: this.#limit,
 					offset: this.#offset,
 					fields: this.#fields,
+					where: this.#filters,
 					orderBy: this.#orderBy,
 					cursor: this.#cursor,
 					portion: this.#portion,
@@ -157,6 +163,18 @@ export default class DynamicListAttribute extends DataAttributeBase {
 		this.dispatchEvent(new CollectionDataAttributeChangeEvent(this, data, this.#pageIndex));
 	}
 
+	get cube(): string {
+		return this.#cube;
+	}
+
+	get className(): string {
+		return this.#className;
+	}
+
+	get model(): string {
+		return this.#model;
+	}
+
 	get limit(): number {
 		return this.#limit;
 	}
@@ -190,6 +208,10 @@ export default class DynamicListAttribute extends DataAttributeBase {
 
 	get cursor(): string | undefined {
 		return this.#cursor;
+	}
+
+	get provider(): DynamicListProvider {
+		return this.#provider;
 	}
 
 	getItemByIndex(index: number) {
@@ -314,5 +336,33 @@ export default class DynamicListAttribute extends DataAttributeBase {
 				break;
 			};
 		}
+	}
+
+	setFilter(filter: DynamicListFilter) {
+		this.clear();
+
+		let found = false;
+
+		for(let i = 0; i < this.#filters.length; i++) {
+			if(this.#filters[i].iLike[0] === filter.iLike[0]) {
+				this.#filters[i] = filter;
+				found = true;
+				break;
+			}
+		}
+
+		if(!found) {
+			this.#filters.push(filter);
+		}
+
+		this.#fetchData(this.#onDataLoad.bind(this));
+	}
+
+	setFilters(filters: DynamicListFilter[]) {
+		this.clear();
+
+		this.#filters = filters;
+
+		this.#fetchData(this.#onDataLoad.bind(this));
 	}
 }

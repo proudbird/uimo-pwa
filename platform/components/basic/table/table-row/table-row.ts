@@ -8,6 +8,8 @@ import TableField from '../table-field';
 
 @DefineComponent('table-row')
 export default class TableRow extends Component<ITableRowComponent>(specification) {
+  static scopeName = 'table';
+  
   render() {
     return {
       ...this.config,

@@ -1,0 +1,95 @@
+@import '~@spectrum-css/table/dist/index-vars';
+
+uimo-table-filter-panel {
+  display: none;
+
+  &.visible {
+    display: flex;
+    height: 32px;
+  }
+
+  &.hidden {
+    display: none;
+    height: 0px;
+  }
+
+  &.visible {
+    display: flex;
+    animation-duration: 0.3s;
+    animation-name: display-filter;
+
+    @keyframes display-filter {
+      0% {
+        opacity: 0;
+        display: flex;
+        height: 0;
+      }
+
+      100% {
+        opacity: 1;
+        display: flex;
+        height: 32px;
+      }
+    }
+  }
+
+  &.hidden {
+    display: none;
+    animation-duration: 0.3s;
+    animation-name: hide-filter;
+
+    @keyframes hide-filter {
+      0% {
+        opacity: 1;
+        display: flex;
+        height: 32px;
+      }
+
+      90% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 0;
+        height: 0;
+        display: none;
+      }
+    }
+  }
+
+  &.visible * {
+    display: flex;
+    animation-duration: 0.3s;
+    animation-name: display-filter-tags;
+
+    @keyframes display-filter-tags {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+  }
+
+  &.hidden * {
+    display: none;
+    animation-duration: 0.3s;
+    animation-name: hide-filter-tags;
+
+    @keyframes hide-filter-tags {
+      0% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+  }
+
+  & > uimo-field-label {
+    align-items: center;
+  }
+}

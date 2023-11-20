@@ -5,9 +5,9 @@ import { DataAttribute, IState, IStateManager } from './data/state';
 import { ChildTemplate, ComponentOptions, EventHandler, IComponent, PropDataSourceDefinition, PropDefinition, PropHandlerDefinition, StyleProperties, ViewModule } from './types';
 
 export function setObservation(element: IComponent, prop: PropDefinition, data: IStateManager, setter?: DataAttributeSetter): void {
-	if(!(prop)) return;
+	if(prop === undefined || prop === null) return;
 
-	if(typeof prop === 'string') { // if number. boolean, date???
+	if(typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'boolean') { // if boolean, date???
 		setter && setter(prop);
 	} else if((prop as IPolyDataAttribute).isIterable) {
 		element.observe((prop as DataAttribute), () => element.onDataLoad && element.onDataLoad(prop as IPolyDataAttribute));

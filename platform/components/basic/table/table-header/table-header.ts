@@ -5,7 +5,8 @@ import { specification, ITableHeaderComponent } from './table-header.types';
 
 @DefineComponent('table-header')
 export default class TableHeader extends Component<ITableHeaderComponent>(specification) {
-
+  static scopeName = 'table';
+  
   render() {
     return {
       ...this.config,

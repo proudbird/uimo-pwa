@@ -20,13 +20,19 @@ import {
 	MenuItemExtraProps,
 	MenuItemSpecification,
 	MenuSpecification,
+	ModalExtraProps,
+	ModalSpecification,
 	NumberFieldSpecification,
+	PopoverExtraProps,
+	PopoverSpecification,
 	ReferenceFieldExtraProps,
 	ReferenceFieldSpecification,
 	ReferenceInputExtraProps,
 	ReferenceInputSpecification,
 	TableFieldExtraProps,
 	TableFieldSpecification,
+	TableFilterPanelExtraProps,
+	TableFilterPanelSpecification,
 	TableSpecification,
 	TabsBodyExtraProps,
 	TabsBodySpecification,
@@ -36,6 +42,10 @@ import {
 	TabsItemsExtraProps,
 	TabsItemsSpecification,
 	TabsSpecification,
+	TagExtraProps,
+	TagSpecification,
+	TaggroupExtraProps,
+	TaggroupSpecification,
 	TextFieldSpecification,
 	TextSpecification,
 	ViewSpecification,
@@ -51,15 +61,20 @@ export type IconComponent = ComponentDefinition<typeof IconSpecification, IconEx
 export type LabelComponent = ComponentDefinition<typeof LabelSpecification>;
 export type MenuComponent = ComponentDefinition<typeof MenuSpecification, MenuExtraProps>;
 export type MenuItemComponent = ComponentDefinition<typeof MenuItemSpecification, MenuItemExtraProps>;
+export type ModalComponent = ComponentDefinition<typeof ModalSpecification, ModalExtraProps>;
 export type NumberFieldComponent = ComponentDefinition<typeof NumberFieldSpecification>;
+export type PopoverComponent = ComponentDefinition<typeof PopoverSpecification, PopoverExtraProps>;
 export type ReferenceFieldComponent = ComponentDefinition<typeof ReferenceFieldSpecification, ReferenceFieldExtraProps>;
 export type ReferenceInputComponent = ComponentDefinition<typeof ReferenceInputSpecification, ReferenceInputExtraProps>;
 export type TableComponent = ComponentDefinition<typeof TableSpecification>;
 export type TableFieldComponent = ComponentDefinition<typeof TableFieldSpecification, TableFieldExtraProps>;
+export type TableFilterPanelComponent = ComponentDefinition<typeof TableFilterPanelSpecification, TableFilterPanelExtraProps>;
 export type TabsBodyComponent = ComponentDefinition<typeof TabsBodySpecification, TabsBodyExtraProps>;
 export type TabsComponent = ComponentDefinition<typeof TabsSpecification, TabsExtraProps>;
 export type TabsItemComponent = ComponentDefinition<typeof TabsItemSpecification, TabsItemExtraProps>;
 export type TabsItemsComponent = ComponentDefinition<typeof TabsItemsSpecification, TabsItemsExtraProps>;
+export type TagComponent = ComponentDefinition<typeof TagSpecification, TagExtraProps>;
+export type TaggroupComponent = ComponentDefinition<typeof TaggroupSpecification, TaggroupExtraProps>;
 export type TextComponent = ComponentDefinition<typeof TextSpecification>;
 export type TextFieldComponent = ComponentDefinition<typeof TextFieldSpecification>;
 export type ViewComponent = ComponentDefinition<typeof ViewSpecification>;

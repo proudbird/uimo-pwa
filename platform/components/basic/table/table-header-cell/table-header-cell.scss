@@ -7,10 +7,22 @@ uimo-table-header-cell {
   display: flex;
   width: 100%;
   position: relative;
+  padding-inline-end: 6px;
 
-  & > .title {
-    @extend .spectrum-Table-columnTitle;
+  & > .cell-content {
+    display: flex;
+    width: calc(100% - 10px);
+    justify-content: space-between;
+
+    & > .title {
+      @extend .spectrum-Table-columnTitle;
+    }
+
+    & > .filter-icon:hover {
+      cursor: pointer;
+    }
   }
+
 
   &:hover {
     border-inline-end: var(--mod-table-border-width, var(--spectrum-table-border-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));

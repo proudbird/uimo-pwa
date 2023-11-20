@@ -67,6 +67,7 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 		#module: ViewModule;
 		#elements: Record<string, IComponent> = {};
 		#parent: IComponent;
+		#master: IComponent | null = null;
 		#owner: IView;
 		#data: D = {} as D;
   
@@ -85,9 +86,18 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			this.#config = config;
 			this.#id = this.#config.id || genId();
 			this.#state = new StateManager(owner, stateDefinition);
-			this.#scope = (this.#parent.constructor as typeof Base).scopeName === (this.constructor as typeof Base).scopeName 
-				? (new StateManager(owner)).merge([this.#parent.$scope, this.#parent.$state]) 
-				: new StateManager(owner);
+
+			const parentScopeName = (this.#parent.constructor as typeof Base).scopeName || this.#parent.config.scope;
+			const currentScopeName = (this.constructor as typeof Base).scopeName || config.scope;
+			if(parentScopeName && currentScopeName && parentScopeName === currentScopeName) {
+				const parentScope = this.#parent.$scope;
+				const parentState = this.#parent.$state;
+				this.#scope = new StateManager(owner).merge([parentScope, parentState]);
+				this.#master = this.#parent.master || this.#parent;
+			} else {
+				this.#scope = new StateManager(owner);
+			}
+
 			this.#context = context || new StateManager(owner);
 			this.#props = {} as IState;
 			this.#module = module || {};
@@ -378,6 +388,14 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 
 		public get alias(): string | undefined {
 			return this.#config.alias;
+		}
+
+		public get parent(): IComponent {
+			return this.#parent;
+		}
+
+		public get master(): IComponent | null {
+			return this.#master;
 		}
 	}
 

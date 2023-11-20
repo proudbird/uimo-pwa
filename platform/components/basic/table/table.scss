@@ -3,19 +3,18 @@
 uimo-table {
   @extend .spectrum-Table, .spectrum-Table--emphasized, .spectrum-Table--sizeS;
 
-  position: relative;
   display: flex !important;
   flex-direction: column;
   width: 100%;
   max-height: calc(100% - 48px);
-
-  border-radius: var(--mod-table-border-radius, var(--spectrum-table-border-radius));
-  border: var(--mod-table-outer-border-inline-width, var(--spectrum-table-outer-border-inline-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
-
+  
   & > .table-container {
-    display: grid;
-    max-height: 100%;
     overflow: hidden;
+    position: relative;
+    gap: 0px;
+  
+    border-radius: var(--mod-table-border-radius, var(--spectrum-table-border-radius));
+    border: var(--mod-table-outer-border-inline-width, var(--spectrum-table-outer-border-inline-width)) solid var(--highcontrast-table-border-color, var(--mod-table-border-color, var(--spectrum-table-border-color)));
   }
 
   & > .table-resize-indicator {

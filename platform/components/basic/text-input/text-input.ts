@@ -10,6 +10,10 @@ export default class TextInput extends Component<ITextInputComponent>(specificat
 	render(): Template {
 		return {
 			...this.config,
+			attributes: {
+				...this.config.attributes,
+				'tabindex': 0
+			},
 			className: {
 				handler: () => {
 					return `size-${this.props.size}`;}
@@ -36,9 +40,16 @@ export default class TextInput extends Component<ITextInputComponent>(specificat
 								handler(e);
 							}
 						}
-					}
+					},
 				}
-			}]
+			}],
+			events: {
+				focus: () => {
+					const inputElement = this.firstChild as HTMLInputElement;
+					inputElement.focus();
+					inputElement.setSelectionRange(0, inputElement.value.length);
+				}
+			}
 		};
 	}
 }

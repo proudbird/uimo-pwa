@@ -92,6 +92,7 @@ export type Template = {
   children?: string | Array<ChildTemplate>;
   props?: PropDefinitions;
   data?: DataAttribute | PropDataSourceDefinition;
+  modal?: boolean;
 };
 
 
@@ -136,6 +137,7 @@ export interface IComponent<D extends DataAttribute = DataAttribute> extends HTM
   alias: string | undefined;
   elements: Record<string, IComponent>;
   owner: IView;
+  master: IComponent | null;
   render(): Template;
   observe(observable: DataAttribute | IPolyDataAttribute, callback: EventListenerOrEventListenerObject): void;
   on(event: string, callback: EventListener | string): void;

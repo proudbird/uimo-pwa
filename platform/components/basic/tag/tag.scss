@@ -1,0 +1,17 @@
+@import '~@spectrum-css/tag/dist/index-vars';
+@import '~@spectrum-css/taggroup/dist/index-vars';
+@import '~@spectrum-css/clearbutton/dist/index-vars';
+
+uimo-tag {
+  @extend .spectrum-Tag, .spectrum-Tag--sizeS, .spectrum-TagGroup-item;
+
+  padding-inline-end: calc(var(--mod-tag-spacing-inline-start, var(--spectrum-tag-spacing-inline-start)) - var(--mod-tag-border-width, var(--spectrum-tag-border-width)));
+
+  & > .label {
+    @extend .spectrum-Tag-itemLabel;
+  }
+
+  & > .remove-icon {
+    @extend .spectrum-ClearButton, .spectrum-ClearButton--sizeS, .spectrum-Tag-clearButton;
+  }
+}
