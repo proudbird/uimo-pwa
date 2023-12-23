@@ -25,6 +25,7 @@ export default class MenuItem extends Component<IMenuItemComponent>(specificatio
           this.config.events?.click;
           const handler = this.owner.module[this.config.events?.click as string];
 						if(handler) {
+              //@ts-ignore
 							handler.call(this.owner, e, this);
             }
         }

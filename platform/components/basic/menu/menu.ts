@@ -1,4 +1,4 @@
-import { Component, ComponentOptions, DefineComponent } from '@/core';
+import { Component, type ComponentOptions, DefineComponent } from '@/core';
 
 import { specification, IMenuComponent } from './menu.types';
 
