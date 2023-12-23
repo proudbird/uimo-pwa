@@ -54,10 +54,10 @@ declare namespace JSX {
 declare class Uimo {
   constructor(props: { pathToCubes: string });
   static(): string;
-  index(): string;
+  index(root?: string): string;
   loadView(pathToCubes: string, viewId: string): Promise<any>;
-  loadModule(pathToCubes: string, filename: string, moduleId: string): Promise<any>;
-  initApp(params: any): Promise<any>;
+  loadModule(cubeName: string, fileName: string, alias: string): Promise<any>;
+  getAppStructure(id: string, cubes: string []): Promise<any>;
 }
 
 export as namespace Uimo;

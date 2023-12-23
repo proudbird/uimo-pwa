@@ -14,6 +14,7 @@ export default class Button extends Component<IButtonComponent>(specification) {
 			},
 			attributes: {
 				role: 'button',
+				tabIndex: '0',
 				disabled: !!this.props.disabled
 			}, 
 			children: [{

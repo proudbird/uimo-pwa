@@ -1,18 +1,35 @@
 import View from './view';
 import loadModule from './loadModule';
+import initCourier, { Courier, VSCodeCourier } from './courier';
 
 export default class Application {
   #id: string;
   #appFrame: View | null = null;
   #viewFrame: View | null = null;
   #views: Record<string, View> = {};
+  courier: Courier;
 
   constructor() {
-    const pathParts = location.pathname.split('/');
-    if(pathParts[1] === 'app' && pathParts.length >= 3 && pathParts[2]) {
-      this.#id = pathParts[2];
+    //@ts-ignore
+    if(window.__APP_ID__) {
+      //@ts-ignore
+      this.#id = window.__APP_ID__;
     } else {
-      throw new Error('Application id is not defined');
+      const pathParts = location.pathname.split('/');
+      if(pathParts[1] === 'app' && pathParts.length >= 3 && pathParts[2]) {
+        //@ts-ignore
+        window.__APP_ID__ = pathParts[2];
+        this.#id = pathParts[2];
+      } else {
+        throw new Error('Application id is not defined');
+      }
+    }
+
+    this.courier = initCourier();
+    if(this.courier instanceof VSCodeCourier) {  
+      this.courier.post('ready').then(({ viewId, key }: any) => {
+        this.showView(viewId, { key });
+      });
     }
   }
 
@@ -48,7 +65,7 @@ export default class Application {
   async showView(viewId: string, params?: any, target: 'app-frame' | 'view-frame' = 'view-frame') {
     //@ts-ignore
     if(!window.views[viewId]) {
-      await loadModule(`view/${viewId}`);
+      await loadModule(`view`, viewId);
     }
 
     //@ts-ignore

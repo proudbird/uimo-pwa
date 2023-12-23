@@ -1,12 +1,23 @@
+import { VSCodeCourier } from "./courier";
 
-export default function loadModule(path: string): Promise<void> {
+export default function loadModule(type: string, id?: string): Promise<void> {
 
-	return new Promise<void>((resolve, reject) => {
+	return new Promise<void>(async (resolve, reject) => {
 
 		const script = document.createElement('script');
-		//@ts-ignore
-		script.src = `${location.origin}/app/${window.Application.id}/${path}`;
 		script.setAttribute('id', 'bundle');
+
+			//@ts-ignore
+		if(Application.courier instanceof VSCodeCourier) {
+			//@ts-ignore
+			const code = (await Application.courier.post(type, { id })) as string;
+			script.innerText = code;
+			resolve();
+		} else {
+			//@ts-ignore
+			script.src = `${location.origin}/app/${window.Application.id}/${type}${id ? `/${id}` : ''}`;
+		}
+
 		document.body.appendChild(script);
 
 		script.onload = (e) => {

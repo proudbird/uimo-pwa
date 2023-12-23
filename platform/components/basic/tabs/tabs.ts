@@ -1,5 +1,5 @@
 import { Component, DefineComponent } from '@/core';
-import { ComponentOptions, Template } from '@/core/types';
+import { type ComponentOptions, Template } from '@/core/types';
 
 import { specification, ITabsComponent } from './tabs.types';
 import TabsItem from './tabs-item';

@@ -29,13 +29,12 @@ export default function defineGlobals(source: string, cubeName: string, triggers
 				}
 			}
 		} else {
-			objects[trigger] = cubes[cubeName][trigger] || objects[trigger] || [];
 			cubes[cubeName] = cubes[cubeName] || {};
+			objects[trigger] = cubes[cubeName][trigger] || objects[trigger] || [];
 			for (const trig of triggers) {
 				const pattern2 = new RegExp(`${trig}`);
 				const matches = pattern2.exec(full)!;
 				if(matches) {
-					console.log(matches.input.split(`${trig}.`)[1]);
 					const base = matches.input.split(`${trig}.`)[1];
 					objects[trigger].push(base.replace(suffix, ''));
 				}

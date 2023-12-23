@@ -1,34 +1,27 @@
 import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import loadView from './loadView';
-import initApp from './initApp';
 import loadModule from './loadModule';
-
-interface UimoProps {
-  pathToCubes: string;
-}
 
 let instance: Uimo;
 
 class Uimo {
-	#pathToCubes: string;
-
-	constructor({ pathToCubes }: UimoProps) {
+	constructor() {
 		if(instance) return instance;
+		
 		instance = this;
-    
-		this.#pathToCubes = pathToCubes;
 	}
 
 	paths = {
-		public: '../../dist/',
-		plarform: '../../platform/',
+		public: '../../public/',
+		platform: '../../platform/',
 	};
 
-	index(): string {
+	index(appId: string): string {
 		const filePath = join(__dirname, this.paths.public, 'index.html');
 		if(existsSync(filePath)) {
-			return readFileSync(filePath, 'utf-8');
+			const indexPage = readFileSync(filePath, 'utf-8');
+			return indexPage.replace('__APP_ID__ = undefined', `__APP_ID__ = ${appId}`);
 		} else {
 			const message = 'Can\'t find index.html file';
 			console.log(message);
@@ -50,10 +43,6 @@ class Uimo {
 	loadView = loadView;
 
 	loadModule = loadModule;
-
-	initApp(params) {
-		return initApp(params);
-	}
 }
 
 export { Uimo };

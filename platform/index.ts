@@ -1,5 +1,5 @@
 import { loadApp } from './app';
-import Application from './core/application';
+import ApplicationClass from './core/application';
 
 export class Cube {
 	constructor(public name: string) {}
@@ -26,31 +26,26 @@ const proxyhandler: ProxyHandler<Instance> = {
 		}
 		return async function(...args: any[]) {
 			return new Promise(async(resolve, reject) => {
-				const response = await fetch(`${location.pathname}/instance/`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						cube: target.cube,
-						className: target.className,
-						object: target.name,
-						method: prop,
-						args: args,
-					})
-				});
-				const result = await response.json();
-				// if(result.error) {
-				// 	reject(result.error);
-				// } else {
+				try {
+					const result = await Application.courier.post('method',
+						{
+							cube: target.cube,
+							className: target.className,
+							object: target.name,
+							method: prop,
+							args: args,
+						}
+					);
 					resolve(result);
-				// }
+				} catch(error) {
+					reject(error);
+				}
 			});
 		};
 	}
 };
 
-window.Application = new Application();
+window.Application = new ApplicationClass();
 window.cubes = {};
 window.modules = {};
 window.views = {};

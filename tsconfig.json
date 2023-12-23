@@ -21,7 +21,7 @@
     "noEmitOnError": false,
     "noEmit": false,
     "jsx": "preserve",
-    "outDir": "./dist",
+    "outDir": "./public",
     "paths": {
       "./*": ["./platform/*"],
       "@/*": ["./platform/*"],

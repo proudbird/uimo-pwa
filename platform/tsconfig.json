@@ -1,7 +1,0 @@
-{
-  "compilerOptions": {
-    "isolatedModules": false,
-    "types": ["./global.d.ts"],
-  },
-  "extends": "../tsconfig.json"
-}

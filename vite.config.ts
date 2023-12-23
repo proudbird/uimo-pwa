@@ -4,8 +4,14 @@ import path from 'path';
 export default defineConfig({
 	build: {
 		rollupOptions: {
-			input: {path: 'index.html'},
-			
+			input: {
+				path: 'index.html',
+			},
+			output: {
+				dir: './public',
+				entryFileNames: 'app.js',
+				assetFileNames: 'styles.css'
+			},
 		},
 		outDir: 'dist',
 		sourcemap: true,
@@ -33,7 +39,8 @@ export default defineConfig({
 				target: 'http://127.0.0.1:21021/',
 				changeOrigin: true,
 				bypass: function(req) {
-					if (/\/(app)(.*)\/(session|login|init|cube|module|list|view|instance|save)\//.test(req.url || '')) {
+					if (/\/(app)(.*)\/(session|login|init|cube|module|method|list|view|instance|save)\//.test(req.url || '')) {
+						console.log(req.url);
 						return null;
 					}
 					if (/\/(app)(.*)\/(view)\//.test(req.url || '')) {

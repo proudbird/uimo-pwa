@@ -11,6 +11,21 @@ import Reference from './core/objects/reference';
 
 declare var Application: ApplicationClass;
 
+type AppMemberPath = {
+  module: string;
+  clientModule: string;
+};
+
+export type AppMember = AppMemberPath & Partial<{
+  [name: string]: AppMember;
+}>;
+
+export declare type ApplicationStructure = {
+  id: string;
+  path: string;
+  cubes: Record<string, AppMember>;
+}
+
 export async function loadApp(root: HTMLElement): Promise<void> {
 	const app = await defineApp();
 	if(app) {
@@ -33,7 +48,6 @@ export async function loadApp(root: HTMLElement): Promise<void> {
 		}
 
 		if(queryParams.view) {
-			console.log(`App reload with view ${queryParams.view}`)
 			Application.showView(queryParams.view, { ...viewParams });
 		}
 	}
@@ -47,32 +61,27 @@ export async function defineApp(): Promise<HTMLElement | undefined> {
 	const view = new View('app-frame', layout, data, getModule);
 
 	window.Application.appFrame = view;
+	const result = (await window.Application.courier.post('init')) as ApplicationStructure;
 
-	const path = location.pathname.split('/');
-	const appName = path[2];
+	for(const [cubeName, cube] of Object.entries(result.cubes)) {
 
-	const response = await fetch(`/app/${appName}/init/`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-	});
-	const result = await response.json();
+		if(cube.clientModule) {
+			try {
+				await loadModule(`cube`, cubeName);
+			} catch (error) {
+				console.log(error);
+			}
+		};
 
-	for(const alias in result.cubes) {
-		if(!(/\.client/.test(alias))) continue;
-		try {
-			await loadModule(`cube/${alias}`);
-		} catch (error) {
-			console.log(error);
-		}
-	}
+		for(const [moduleName, module] of Object.entries(cube['Modules'] || {})) {
 
-	for(const alias in result.modules) {
-		try {
-			await loadModule(`module/${alias}`);
-		} catch (error) {
-			console.log(error);
+			if((module as AppMember)?.clientModule) {
+				try {
+					await loadModule(`module`, `${cubeName}.${moduleName}`);
+				} catch (error) {
+					console.log(error);
+				}
+			}
 		}
 	}
 

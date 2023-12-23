@@ -1,5 +1,5 @@
 import { Component, DefineComponent } from '@/core';
-import { ComponentOptions, Template } from '@/core/types';
+import type { ComponentOptions, Template } from '@/core/types';
 import ListAttribute from '@/core/data/attribute/list';
 
 import { specification, ITableFilterPanelComponent } from './table-filter-panel.types';
