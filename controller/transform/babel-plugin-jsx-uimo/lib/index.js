@@ -301,6 +301,21 @@ function default_1() {
             }
             return (core_1.types.callExpression(state.addHelper('extends'), objects));
         };
+        const JSXChildrenAsAttribute = nodes => {
+            let result = null;
+            nodes.forEach(node => {
+                switch (node.type) {
+                    case 'JSXAttribute': {
+                        if (node.name.name !== 'children') {
+                            break;
+                        }
+                        const objectKey = core_1.types.identifier(node.name.name);
+                        result = core_1.types.assignmentExpression('=', objectKey, JSXAttributeValue(node.value));
+                    }
+                }
+            });
+            return result;
+        };
         const JSXAlias = nodes => {
             let result = null;
             const objects = [];
@@ -354,6 +369,7 @@ function default_1() {
             const events = JSXEvents(node.openingElement.attributes);
             const style = JSXStyle(node.openingElement.attributes);
             const data = JSXData(node.openingElement.attributes);
+            const children = JSXChildrenAsAttribute(node.openingElement.attributes);
             if (alias) {
                 properties.push(core_1.types.objectProperty(core_1.types.identifier('alias'), alias));
             }
@@ -375,7 +391,10 @@ function default_1() {
             if (data.properties.length > 0) {
                 properties.push(core_1.types.objectProperty(core_1.types.identifier('data'), data));
             }
-            properties.push(core_1.types.objectProperty(core_1.types.identifier(childrenProperty), node.closingElement ? JSXChildren(node.children) : core_1.types.nullLiteral()));
+            if (children) {
+                properties.push(core_1.types.objectProperty(core_1.types.identifier('children'), children));
+            }
+            properties.push(core_1.types.objectProperty(core_1.types.identifier(childrenProperty), node.closingElement ? JSXChildren(node.children) : children ? children : core_1.types.nullLiteral()));
             return jsxObjectTransformer(core_1.types.objectExpression(properties));
         };
         const JSXChild = transformOnType({ JSXText, JSXElement, JSXExpressionContainer });

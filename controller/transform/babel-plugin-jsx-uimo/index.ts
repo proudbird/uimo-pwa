@@ -396,6 +396,27 @@ export default function () {
         )
       )
     }
+    
+    const JSXChildrenAsAttribute = nodes => {
+      let result = null as any
+
+      nodes.forEach(node => {
+        switch (node.type) {
+          case 'JSXAttribute': {
+
+            if (node.name.name !== 'children') {
+              break
+            }
+
+            const objectKey = t.identifier(node.name.name)
+
+            result =  t.assignmentExpression('=', objectKey, JSXAttributeValue(node.value));
+          }
+        }
+      })
+
+      return result;
+    }
 
     const JSXAlias = nodes => {
       let result = null as any
@@ -469,6 +490,7 @@ export default function () {
       const events = JSXEvents(node.openingElement.attributes);
       const style = JSXStyle(node.openingElement.attributes);
       const data = JSXData(node.openingElement.attributes);
+      const children = JSXChildrenAsAttribute(node.openingElement.attributes);
   
       if(alias) {
         properties.push(t.objectProperty(t.identifier('alias'), alias));
@@ -491,8 +513,13 @@ export default function () {
       if(data.properties.length > 0) {
         properties.push(t.objectProperty(t.identifier('data'), data));
       }
+      if(children) {
+        properties.push(t.objectProperty(t.identifier('children'), children));
+      }
 
-      properties.push(t.objectProperty(t.identifier(childrenProperty), node.closingElement ? JSXChildren(node.children) : t.nullLiteral()));
+      properties.push(t.objectProperty(t.identifier(childrenProperty), 
+        node.closingElement ? JSXChildren(node.children) : children ? children : t.nullLiteral()
+      ));
 
       return jsxObjectTransformer(
         t.objectExpression(properties)
