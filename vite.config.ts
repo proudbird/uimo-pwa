@@ -40,7 +40,6 @@ export default defineConfig({
 				changeOrigin: true,
 				bypass: function(req) {
 					if (/\/(app)(.*)\/(session|login|init|cube|module|method|list|view|instance|save)\//.test(req.url || '')) {
-						console.log(req.url);
 						return null;
 					}
 					if (/\/(app)(.*)\/(view)\//.test(req.url || '')) {
