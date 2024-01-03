@@ -13,7 +13,7 @@ export default class ReferenceAttribute extends DataAttributeBase {
 	#value: Reference | null;
 	#prevValue: Reference | null;
 
-	constructor({ initValue = null }: ReferenceAttributeProps, owner: IView, parent?: DataAttribute) {
+	constructor({ initValue = null }: ReferenceAttributeProps, owner?: IView, parent?: DataAttribute) {
 		super(owner, parent);
 		this.#value = this.#prevValue = initValue;
 	}

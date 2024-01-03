@@ -64,7 +64,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 	#isFullFromStart: boolean = true;
   #isFullFromEnd: boolean = false;
 
-	constructor({ cube, className, model, fields = '', orderBy = [], limit = 30, selected }: DynamicListAttributeOptions, owner: IView, parent?: DataAttribute) {
+	constructor({ cube, className, model, fields = '', orderBy = [], limit = 30, selected }: DynamicListAttributeOptions, owner?: IView, parent?: DataAttribute) {
 		super(owner, parent);
 
 		this.#cube = cube;
@@ -78,7 +78,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 
 		this.#fetchPromise = this.#fetchData(this.#onDataLoad.bind(this));
 
-		owner.on('create', (e: Event) => {
+		owner && owner.on('create', (e: Event) => {
 			const instance = (e as CustomEvent).detail;
 			if(instance.cube === this.#cube && instance.className === this.#className && instance.model === this.#model) {
 				this.clear();
@@ -88,7 +88,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 			}
 		})
 
-		owner.on('update', (e: Event) => {
+		owner && owner.on('update', (e: Event) => {
 			const instance = (e as CustomEvent).detail;
 			if(instance.cube === this.#cube && instance.className === this.#className && instance.model === this.#model) {
 				this.dispatchEvent(new CollectionDataAttributeUpdateEvent(this, instance));
@@ -260,7 +260,7 @@ export default class DynamicListAttribute extends DataAttributeBase {
 			definition[attrName] = { type: attrType.toLocaleLowerCase(), initValue };
 		}
 
-		const structure = new StructureAttribute({ attributes: definition }, this.owner, this);
+		const structure = new StructureAttribute({ definition }, this.owner, this);
 
 		return structure as StructureAttributeType;
 	}

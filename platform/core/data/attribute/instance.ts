@@ -47,7 +47,7 @@ export default class InstanceAttribute extends DataAttributeBase {
 	#attributes: Record<string, DataAttribute> = {};
 	#changedFields: Set<string> = new Set();
 
-	constructor({ cube, className, model, id, fields }: InstanceAttributeOptions, owner: IView, parent?: DataAttribute) {
+	constructor({ cube, className, model, id, fields }: InstanceAttributeOptions, owner?: IView, parent?: DataAttribute) {
 		super(owner, parent);
 
 		this.#cube = cube;
@@ -257,11 +257,11 @@ export default class InstanceAttribute extends DataAttributeBase {
 							id: this.#id,
 						});
 
-						this.owner.dispatchEvent(new CustomEvent(result.data.operation, {
+						this.owner?.dispatchEvent(new CustomEvent(result.data.operation, {
 							detail: this
 						}));
 
-						if(this.owner.parent) {
+						if(this.owner?.parent) {
 							this.owner.parent.dispatchEvent(new CustomEvent(result.data.operation, {
 								detail: this
 							}));

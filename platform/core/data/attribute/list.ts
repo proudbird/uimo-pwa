@@ -14,7 +14,7 @@ export interface ListAttributeOptions {
 export default class ListAttribute extends DataAttributeBase {
 	#entries: any[] = [];
 
-	constructor({ initValue}: ListAttributeOptions, owner: IView, parent?: DataAttribute) {
+	constructor({ initValue}: ListAttributeOptions, owner?: IView, parent?: DataAttribute) {
 		super(owner, parent);
 
 		if(initValue) {

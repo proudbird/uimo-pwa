@@ -9,7 +9,7 @@ export default class ElementAttribute extends DataAttributeBase {
 	#value: IComponent | null;
 	#prevValue: IComponent | null;
 
-	constructor({ initValue = null }, owner: IView, parent?: DataAttribute) {
+	constructor({ initValue = null }, owner?: IView, parent?: DataAttribute) {
 		super(owner, parent);
 		this.#value = this.#prevValue = initValue;
 	}

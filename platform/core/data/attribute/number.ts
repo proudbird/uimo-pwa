@@ -33,7 +33,7 @@ export default class NumberAttribute extends DataAttributeBase {
 		precision = 0,
 		truncate = true,
 		round = 'up',
-	}: NumberAttributeOptions, owner: IView, parent?: DataAttribute) {
+	}: NumberAttributeOptions, owner?: IView, parent?: DataAttribute) {
 		super(owner, parent);
 		this.#value = this.#prevValue = initValue;
 		this.maxLength = maxLength;

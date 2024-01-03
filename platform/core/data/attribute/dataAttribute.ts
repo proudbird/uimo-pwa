@@ -11,7 +11,7 @@ export default class DataAttributeBase extends EventTarget {
 	 */
 	readonly DataAttribute = true;
 
-	constructor(readonly owner: IView, readonly parent?: DataAttribute) {
+	constructor(readonly owner?: IView, readonly parent?: DataAttribute, readonly inScope: boolean = true) {
 		super();
 	}
 
