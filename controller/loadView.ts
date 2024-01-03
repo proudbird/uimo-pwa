@@ -61,7 +61,6 @@ export default async function loadView(
 			relativeModuleFilePath = `${cubeName}/${className}/${className}.${modelName}.Views/${viewName}`;
 		}
 
-
 		try {
 			// Load the view definition, data, and module.
 			const { layout, data, module, style } = await getViewDefinitions(
@@ -216,7 +215,8 @@ async function loadTsFile(filePath: string): Promise<any> {
 
 	try {
 		//@ts-ignore
-		result = (await transformCode(source, filePath)) as Output;
+		const transformed = await transformCode(source, filePath) as Output;
+		result = transformed;
 	} catch (error) {
 		console.log(error);
 	}
@@ -242,16 +242,17 @@ async function getViewModule(
 	viewName: string,
 	fileAlias: string
 ): Promise<ViewModule> {
-	const loaders: { [key: string]: (filePath: string, fileAlias: string) => Promise<ViewModule> } = {
+	const loaders: { [key: string]: (filePath: string) => Promise<ViewModule> } = {
 		js: async (filePath: string) => ({ code: readFileSync(filePath, 'utf8'), map: '' }),
 		ts: loadModuleTsFile,
+		tsx: loadModuleTsFile,
 	};
 
 	for (const [extension, loader] of Object.entries(loaders)) {
 		const filePath = resolvePath(pathToView, `${viewName}.${extension}`);
 		if (existsSync(filePath)) {
 			try {
-				return await loader(filePath, fileAlias);
+				return await loader(filePath);
 			} catch (error) {
 				throw new Error(`Can not parse view module file ${filePath}`);
 			}
@@ -268,27 +269,13 @@ async function getViewModule(
  * @param fileAlias The alias for the module file.
  * @returns The loaded and transformed module.
  */
-export async function loadModuleTsFile(filePath: string, fileAlias: string): Promise<any> {
+export async function loadModuleTsFile(filePath: string): Promise<any> {
 	const source = readFileSync(filePath, 'utf8');
-	let result = await transform(source, {
-		filename: `${fileAlias}.ts`,
-		sourceMaps: true,
-		inlineSourcesContent: true,
-		module: {
-			type: 'commonjs',
-		},
-		isModule: true,
-		jsc: {
-			parser: {
-				syntax: 'typescript',
-			},
-			transform: {},
-		},
-	});
+	let result: Output = { code: '', map: '' };
 
 	try {
 		//@ts-ignore
-		result = (await transformCode(source, `${fileAlias}.ts`)) as Output;
+		result = (await transformCode(source, filePath)) as Output;
 	} catch (error) {
 		console.log(error);
 	}
