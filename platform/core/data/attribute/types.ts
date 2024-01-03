@@ -14,6 +14,7 @@ export type NumberAttributeOptions = {
 
 export type BooleanAttributeOptions = {
   initValue?: boolean;
+  inScope?: boolean;
 };
 
 export type ReferenceAttributeValue = [string, string, string];

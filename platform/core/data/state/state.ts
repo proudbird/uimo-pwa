@@ -35,6 +35,9 @@ class StateManagerBase {
 		source = Array.isArray(source) ? source : [source];
 		for(const manager of source) {
 			for(const [attrName, attr] of Object.entries(manager || {})) {
+				if(!attr.inScope) {
+					continue;
+				}
 				Object.defineProperty(this, attrName, {
 					value: attr,
 					writable: false,
