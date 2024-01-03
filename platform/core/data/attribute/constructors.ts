@@ -8,20 +8,21 @@ import ListAttribute from './list';
 import ReferenceAttribute from './reference';
 import InstanceAttribute from './instance';
 import DynamicListAttribute from './dynamic-list';
+import TreeAttribute from './tree';
 import ElementAttribute from './element';
 import VariableAttribute from './variable';
 
 export default {
-  unknown: UnknownAttribute,
   string: StringAttribute,
   number: NumberAttribute,
   boolean: BooleanAttribute,
-  date: DateAttribute,
-  structure: StructureAttribute,
-  list: ListAttribute,
-  reference: ReferenceAttribute,
+  Date: DateAttribute,
+  Structure: StructureAttribute,
+  List: ListAttribute,
+  Reference: ReferenceAttribute,
   Instance: InstanceAttribute,
   DynamicList: DynamicListAttribute,
+  Tree: TreeAttribute,
   Element: ElementAttribute,
-  variable: VariableAttribute
+  Variable: VariableAttribute
 };

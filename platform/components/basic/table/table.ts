@@ -1,8 +1,7 @@
 
 import { Component, DefineComponent } from '@/core';
 import { DataAttribute, DynamicListAttribute, IMonoDataAttribute } from '@/core/data';
-import { type ComponentOptions, IComponent } from '@/core/types';
-import { ChildTemplate } from '@/core/types';
+import { type ComponentOptions, IComponent, PolyChildTemplate } from '@/core/types';
 import Reference from '@/core/objects/reference';
 
 import { specification, ITableComponent } from './table.types';
@@ -25,16 +24,16 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
     config = config || {};
     config.scope = 'table';
 
-    const itemSlot = (config.children as ChildTemplate[])?.find(slot => slot.tagName === 'fields'); 
+    const itemSlot = (config.children as PolyChildTemplate[])?.find(slot => slot.tagName === 'fields'); 
 
-    const colTemplate = config.props?.template || (itemSlot?.children as ChildTemplate[])?.map(() => '1fr').join(' ');
+    const colTemplate = config.props?.template || (itemSlot?.children as PolyChildTemplate[])?.map(() => '1fr').join(' ');
     stateDefinition = {
       template: { type: 'string', initValue: colTemplate },
       resizePending: { type: 'boolean', initValue: false },
       resizeCursorPosition: { type: 'number', initValue: NaN },
-      selectedItems: { type: 'list', initValue: owner.params.selectedItems },
-      editingElement: { type: 'variable' },
-      filters: { type: 'list', initValue: [] },
+      selectedItems: { type: 'List', initValue: owner.params.selectedItems },
+      editingElement: { type: 'Variable' },
+      filters: { type: 'List', initValue: [] },
     };
 
     super({ config, stateDefinition, owner, ...rest });
@@ -208,13 +207,13 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
   onDataLoad() {
     this.#firstElementTopOffset = this.#firstElement?.offsetTop || 0;
     
-    const itemSlot = (this.config.children as ChildTemplate[])?.find(slot => slot.tagName === 'fields');
+    const itemSlot = (this.config.children as PolyChildTemplate[])?.find(slot => slot.tagName === 'fields');
     
     const data =  this.data as DynamicListAttribute;
 
     this.data.selected && (this.state.selectedItems as ListAttribute).set(0, { id: this.data.selected });
     if(!this.#header!.childNodes.length) {
-      ((itemSlot?.children || []) as ChildTemplate[]).forEach((fieldConfig, colIndex) => {
+      ((itemSlot?.children || []) as PolyChildTemplate[]).forEach((fieldConfig, colIndex) => {
         this.#header!.addElements({
           tagName: 'table-header-cell',
           alias: fieldConfig.alias,
@@ -237,7 +236,7 @@ export default class Table extends Component<ITableComponent, DynamicListAttribu
           break;
         }
       }
-      const fieldConfigs = ((itemSlot?.children || []) as ChildTemplate[]).map((fieldConfig, colIndex) => {
+      const fieldConfigs = ((itemSlot?.children || []) as PolyChildTemplate[]).map((fieldConfig, colIndex) => {
         return {
           ...fieldConfig,
           scope: 'table',
