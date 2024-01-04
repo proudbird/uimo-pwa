@@ -5,7 +5,6 @@ export default function loadModule(type: string, id?: string): Promise<void> {
 	return new Promise<void>(async (resolve, reject) => {
 
 		const script = document.createElement('script');
-		script.setAttribute('id', 'bundle');
 
 			//@ts-ignore
 		if(Application.courier instanceof VSCodeCourier) {

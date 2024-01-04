@@ -1,0 +1,25 @@
+@import '~@spectrum-css/actionbar/dist/index-vars';
+
+uimo-inline-actions {
+  flex-direction: row-reverse;
+  height: 100%;
+  display: none;
+
+  &.hover {
+    display: flex;
+  }
+
+  & uimo-action-button {
+    margin: 0px;
+    padding: 3px;
+    min-inline-size: auto;
+    block-size: auto;
+    border-width: 0px;
+    aspect-ratio: 1/1;
+    background-color: transparent;
+    
+    &:hover {
+      background-color:var(--highcontrast-actionbutton-background-color-down, var(--mod-actionbutton-background-color-down, var(--spectrum-actionbutton-background-color-down)));
+    }
+  }
+}

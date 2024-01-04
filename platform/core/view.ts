@@ -64,7 +64,7 @@ export default class View extends EventTarget implements IView {
 			});
 		}
 
-		this.#module.onMounted && this.#module.onMounted.apply(this);
+		this.#module.onRender && this.#module.onRender.apply(this);
 	}
 
 	get id(): string {

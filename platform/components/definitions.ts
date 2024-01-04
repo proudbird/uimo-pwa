@@ -5,6 +5,7 @@ export type { specification as BoxSpecification } from './basic/box/box.types';
 export type { specification as ButtonSpecification } from './basic/button/button.types';
 export type { specification as CheckboxSpecification } from './basic/checkbox/checkbox.types';
 export type { specification as IconSpecification, ExtraProps as IconExtraProps } from './basic/icon/icon.types';
+export type { specification as InlineActionsSpecification, ExtraProps as InlineActionsExtraProps } from './basic/inline-actions/inline-actions.types';
 export type { specification as LabelSpecification } from './basic/label/label.types';
 export type { specification as MenuItemSpecification, ExtraProps as MenuItemExtraProps } from './basic/menu/menu-item/menu-item.types';
 export type { specification as MenuSpecification, ExtraProps as MenuExtraProps } from './basic/menu/menu.types';
@@ -24,5 +25,8 @@ export type { specification as TagSpecification, ExtraProps as TagExtraProps } f
 export type { specification as TaggroupSpecification, ExtraProps as TaggroupExtraProps } from './basic/taggroup/taggroup.types';
 export type { specification as TextFieldSpecification } from './basic/text-field/text-field.types';
 export type { specification as TextSpecification } from './basic/text/text.types';
+export type { specification as TreeViewItemSpecification, ExtraProps as TreeViewItemExtraProps } from './basic/tree-view-item/tree-view-item.types';
+export type { specification as TreeViewSpecification } from './basic/tree-view/tree-view.types';
+export type { specification as TreeviewSpecification, ExtraProps as TreeviewExtraProps } from './basic/tree-view/tree-view.types';
 export type { specification as ViewSpecification } from './basic/view/view.types';
 export type { specification as WorkPanelSpecification, ExtraProps as WorkPanelExtraProps } from './basic/work-panel/work-panel.types';

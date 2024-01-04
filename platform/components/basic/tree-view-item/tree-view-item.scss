@@ -1,0 +1,66 @@
+@import '~@spectrum-css/treeview/dist/index-vars';
+
+uimo-tree-view-item {
+  display: flex;
+  flex-direction: column;
+
+  & > .node {
+    @extend .spectrum-TreeView-item, .spectrum-TreeView-itemLink;
+
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0px;
+    width: 100%;
+    
+    &::before {
+      content: none;
+    }
+    
+    &:hover {
+      background-color:var(--highcontrast-treeview-item-background-color-focus, var(--mod-treeview-item-background-color-hover, var(--spectrum-treeview-item-background-color-hover)));
+    }
+    
+    &:hover::before {
+      color:var(--highcontrast-treeview-item-text-color-focus, var(--mod-treeview-item-text-color-hover, var(--spectrum-treeview-item-text-color-hover)));
+      background-color: transparent;
+    }
+    
+    & > .icons-container {
+      
+      display: flex;
+      flex-direction: row;
+      padding-inline-start: 4px;
+      padding-inline-end: 4px;
+      
+      & .arrow {
+        transition: all 0.1s ease-in-out;
+      }
+  
+      & .arrow.expanded {
+        transform: rotateZ(90deg);
+        transition: all 0.1s ease-in-out;
+      }
+    }
+
+    & > uimo-icon {
+      margin-inline-end: 4px;
+    }
+  }
+
+  & > .children {
+    gap: 0px;
+  }
+
+  & .selected {
+    color:var(--highcontrast-treeview-item-text-color-selected, var(--mod-treeview-item-text-color-selected, var(--spectrum-treeview-item-text-color-selected)));
+    background-color: var(--highcontrast-treeview-item-background-color-selected, var(--mod-treeview-item-background-color-selected, var(--spectrum-treeview-item-background-color-selected)));
+    border-width: var(--mod-treeview-item-border-size-selected, var(--spectrum-treeview-item-border-size-selected));
+    border-color: var(--highcontrast-treeview-item-border-color-selected, var(--mod-treeview-item-border-color-selected, var(--spectrum-treeview-item-border-color-selected)));
+    border-style: solid;
+
+    & > .icons-container {
+      padding-inline-start: calc(4px - var(--mod-treeview-item-border-size-selected, var(--spectrum-treeview-item-border-size-selected)));
+    }
+  }
+}

@@ -15,6 +15,8 @@ import {
 	ButtonSpecification,
 	IconExtraProps,
 	IconSpecification,
+	InlineActionsExtraProps,
+	InlineActionsSpecification,
 	LabelSpecification,
 	MenuExtraProps,
 	MenuItemExtraProps,
@@ -48,6 +50,11 @@ import {
 	TaggroupSpecification,
 	TextFieldSpecification,
 	TextSpecification,
+	TreeViewItemExtraProps,
+	TreeViewItemSpecification,
+	TreeViewSpecification,
+	TreeviewExtraProps,
+	TreeviewSpecification,
 	ViewSpecification,
 	WorkPanelExtraProps,
 	WorkPanelSpecification,
@@ -58,6 +65,7 @@ export type ActionButtonComponent = ComponentDefinition<typeof ActionButtonSpeci
 export type BoxComponent = ComponentDefinition<typeof BoxSpecification>;
 export type ButtonComponent = ComponentDefinition<typeof ButtonSpecification>;
 export type IconComponent = ComponentDefinition<typeof IconSpecification, IconExtraProps>;
+export type InlineActionsComponent = ComponentDefinition<typeof InlineActionsSpecification, InlineActionsExtraProps>;
 export type LabelComponent = ComponentDefinition<typeof LabelSpecification>;
 export type MenuComponent = ComponentDefinition<typeof MenuSpecification, MenuExtraProps>;
 export type MenuItemComponent = ComponentDefinition<typeof MenuItemSpecification, MenuItemExtraProps>;
@@ -77,5 +85,7 @@ export type TagComponent = ComponentDefinition<typeof TagSpecification, TagExtra
 export type TaggroupComponent = ComponentDefinition<typeof TaggroupSpecification, TaggroupExtraProps>;
 export type TextComponent = ComponentDefinition<typeof TextSpecification>;
 export type TextFieldComponent = ComponentDefinition<typeof TextFieldSpecification>;
+export type TreeViewItemComponent = ComponentDefinition<typeof TreeViewItemSpecification, TreeViewItemExtraProps>;
+export type TreeviewComponent = ComponentDefinition<typeof TreeviewSpecification, TreeviewExtraProps>;
 export type ViewComponent = ComponentDefinition<typeof ViewSpecification>;
 export type WorkPanelComponent = ComponentDefinition<typeof WorkPanelSpecification, WorkPanelExtraProps>;

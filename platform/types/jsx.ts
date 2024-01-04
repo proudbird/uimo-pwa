@@ -1,6 +1,6 @@
 
 import { StandardProperties } from "csstype";
-import { ComponentDefinition, ComponentPropsFromDefinition, DataSourceType } from '../core/types';
+import { ComponentDefinition, ComponentPropsFromDefinition, DataSourceType, PropHandlerDefinition } from '../core/types';
 import { ElementEvents } from './dom';
 
 export type JSXElementProps<T> = {
@@ -38,5 +38,5 @@ export type JSXElement<T extends ComponentDefinition<any>, K extends HTMLElement
     style?: StandardProperties;
     events?: ElementEvents<K>;
     data? : { path?: string; source?: string };
-    children?: JSXElement<ComponentDefinition<any>> | JSXElement<ComponentDefinition<any>>[] | string; 
+    children?: JSXElement<ComponentDefinition<any>> | JSXElement<ComponentDefinition<any>>[] | string | PropHandlerDefinition; 
   };

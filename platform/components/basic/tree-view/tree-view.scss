@@ -1,0 +1,5 @@
+@import '~@spectrum-css/treeview/dist/index-vars';
+
+uimo-tree-view {
+  @extend .spectrum-TreeView;
+}

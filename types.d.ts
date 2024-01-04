@@ -8,12 +8,14 @@ import {
   ButtonComponent,
   CheckboxFieldComponent,
   IconComponent,
+  InlineActionsComponent,
   LabelComponent,
   MenuComponent,
   MenuItemComponent,
   NumberFieldComponent,
   ReferenceFieldComponent,
   TableComponent,
+  TreeViewComponent,
   TableFieldComponent,
   TabsComponent,
   TabsItemComponent,
@@ -37,17 +39,20 @@ declare namespace JSX {
     'label': JSXElement<LabelComponent>;
     'table': JSXElement<TableComponent>;
     'table-field': JSXElement<TableFieldComponent>;
+    'tree-view': JSXElement<TreeViewComponent>;
     'tabs': JSXElement<TabsComponent>;
     'tabs-item': JSXElement<TabsItemComponent>;
     'menu': JSXElement<MenuComponent>;
     'menu-item': JSXElement<MenuItemComponent>;
     'action-bar': JSXElement<ActionBarComponent>;
     'action-button': JSXElement<ActionButtonComponent>;
+    'inline-actions': JSXElement<InlineActionsComponent>;
     'work-panel': JSXElement<WorkPanelComponent>;
     'slot:fields': JSXElement<{}>;
     'slot:context-menu': JSXElement<{}>;
     'slot:tooltip': JSXElement<{}>;
     'slot:body': JSXElement<{}>;
+    'slot:item': JSXElement<{}>;
   }
 }
 

@@ -20,6 +20,12 @@ export class CollectionDataAttributeClearEvent<T> extends Event {
 	}
 }
 
+export class CollectionDataAttributeLoadEvent<T> extends Event {
+	constructor(public initiator: DataAttribute, public data: T) {
+		super('load');
+	}
+}
+
 export class CollectionDataAttributeUpdateEvent extends Event {
 	constructor(public initiator: DataAttribute, public instance: InstanceAttribute) {
 		super('update');
