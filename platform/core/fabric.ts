@@ -1,13 +1,58 @@
 import { DataAttributeSetter, IMonoDataAttribute, IPolyDataAttribute } from './data';
 import UnknownAttribute from './data/attribute/unknown';
 import { DataAttributeChangeEvent } from './data/events';
-import { DataAttribute, IState, IStateManager } from './data/state';
-import { ChildTemplate, ComponentOptions, EventHandler, IComponent, PropDataSourceDefinition, PropDefinition, PropHandlerDefinition, StyleProperties, ViewModule } from './types';
+import { DataAttribute, IStateManager } from './data/state';
+import { ChildTemplate, ComponentOptions, EventHandler, IComponent, IView, MethodHandler, MethodHandlerDefinition, PolyChildTemplate, PropDataSourceDefinition, PropDefinition, PropHandler, PropHandlerDefinition, StyleProperties, ViewModule } from './types';
+
+export function getProperty(prop: PropDefinition | PropHandler | undefined, owner: IView): any {
+	if(!prop) return;
+
+	if(typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'boolean') {
+		return prop;
+	} else {
+		return executeMethod(
+			prop as MethodHandlerDefinition, 
+			owner
+		);	
+	}
+}
+
+export function executeMethod(
+	eventDefinition: MethodHandlerDefinition | PropHandlerDefinition | undefined, 
+	owner: IView, 
+	args?: any[]
+) {
+	if(!eventDefinition) return;
+
+	args = args || [];
+	let result: any;
+
+	if(typeof eventDefinition === 'string') {
+		const handler = owner.module[eventDefinition as keyof ViewModule] as MethodHandler;
+		if(handler) {
+			result = handler.apply(owner, args);
+		} else {
+			throw new Error(`Element doesn't have a function ${eventDefinition}`);
+		}
+	} else if(typeof eventDefinition === 'function') {
+		result = eventDefinition.apply(owner, args);
+	} else if(typeof eventDefinition === 'object' && (eventDefinition as PropHandlerDefinition).handler) {
+		return executeMethod(
+			(eventDefinition as PropHandlerDefinition).handler, 
+			owner, 
+			args
+		);
+	} else {
+		throw new Error(`Wrong object was defined as event handler. Only 'string' or 'function' are allowed. Type '${typeof eventDefinition}' was provided.`);
+	}
+
+	return result;
+}
 
 export function setObservation(element: IComponent, prop: PropDefinition, data: IStateManager, setter?: DataAttributeSetter): void {
 	if(prop === undefined || prop === null) return;
 
-	if(typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'boolean') { // if boolean, date???
+	if(typeof prop === 'string' || typeof prop === 'number' || typeof prop === 'boolean') { // if date???
 		setter && setter(prop);
 	} else if((prop as IPolyDataAttribute).isIterable) {
 		element.observe((prop as DataAttribute), () => element.onDataLoad && element.onDataLoad(prop as IPolyDataAttribute));
@@ -29,13 +74,23 @@ export function setObservation(element: IComponent, prop: PropDefinition, data: 
 			})
 		}
 	} else if(typeof prop === 'object' && (prop as PropHandlerDefinition).handler) {
-		setter && setter((prop as PropHandlerDefinition).handler!());
+		const handler = (prop as PropHandlerDefinition).handler;
+
+		const setValue = () => {
+			setter && setter(getProperty(
+				handler, 
+				element.owner
+			));
+		};
+
+		setValue(); // initial value
+
 		if((prop as PropHandlerDefinition).dependencies?.length) {
 			for(const dep of (prop as PropHandlerDefinition).dependencies!) {
-				element.observe(dep as DataAttribute, () => setter && setter((prop as PropHandlerDefinition).handler!()));
+				element.observe(dep as DataAttribute, setValue);
 			}
 		} else {
-			element.addEventListener('change', () => setter && setter((prop as PropHandlerDefinition).handler!()));
+			element.addEventListener('change', setValue);
 			// element.addEventListener('input', () => setter((prop as PropHandlerDefinition).handler!(data.parent.state)));
 		}
 	}  else if(typeof prop === 'object' && (prop as PropDataSourceDefinition).path) {
@@ -54,19 +109,9 @@ export function setObservation(element: IComponent, prop: PropDefinition, data: 
 	}
 }
 
-export function getPropValue(prop: PropDefinition, state: IState): any {
-	if(!(prop || state)) return;
-
-	if(typeof prop === 'string') {
-		return prop;
-	} else if((prop as DataAttribute).DataAttribute) {
-		return (prop as IMonoDataAttribute).value;
-	} else if(typeof prop === 'object' && (prop as PropHandlerDefinition).handler) {
-		return (prop as PropHandlerDefinition).handler!();
-	}
-}
-
 export function createElement({ parent, config, context, module }: BuildElementOptions): IComponent | HTMLElement | SVGSVGElement {
+	config = config as PolyChildTemplate;
+
 	// first trying to create custom element
 	if(config.type !== 'native') {
 		const Constructor = customElements.get(/(\@|ui\-)/.test(config.tagName) ? config.tagName.replace('@', 'uimo-').replace('ui-', 'uimo-') : `uimo-${config.tagName}`);
@@ -86,7 +131,7 @@ export function createElement({ parent, config, context, module }: BuildElementO
 export type BuildElementOptions = {
 	parent: IComponent;
 	config: ChildTemplate;
-	context?: IStateManager;
+	context?: IStateManager | DataAttribute;
 	module?: ViewModule;
 };
 
@@ -96,6 +141,7 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 		return element;
 	}
 
+	config = config as PolyChildTemplate;
 	config.id && element.setAttribute('id', config.id);
 
 	if(config.className) {
@@ -149,7 +195,7 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 		element.addEventListener(name, (e: Event) => {
 			if(typeof event === 'string') {
 				if(!module) {
-					throw new Error(`Can't get handler '${event}' for element '${config.tagName}': View module is not defined`);
+					throw new Error(`Can't get handler '${event}' for element '${(config as PolyChildTemplate).tagName}': View module is not defined`);
 				}
 				const handler = module[event as keyof IComponent] as EventHandler;
 				if(handler) {
@@ -169,7 +215,7 @@ export function buildElement({ parent, config, context, module }: BuildElementOp
 		if(typeof config.children === 'string') {
 			element.innerHTML = config.children;
 		} else {
-			for(const childConfig of config.children) {
+			for(const childConfig of (config.children as PolyChildTemplate[])) {
 				if(typeof childConfig === 'string') {
 					element.innerHTML = childConfig;
 					continue;

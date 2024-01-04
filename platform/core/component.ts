@@ -1,6 +1,6 @@
 import get from 'lodash.get';
 
-import { buildElement, setObservation } from '@/core/fabric';
+import { buildElement, executeMethod, setObservation } from '@/core/fabric';
 import { genId } from '@/utils/helpers';
 
 import { 
@@ -27,9 +27,12 @@ import {
 	ExtendedComponent, 
 	StyleProperties, 
 	Template,
-	ViewModule
+	ViewModule,
+	PropHandlerDefinition,
+	MonoChildTemplate,
+	MethodHandlerDefinition
 } from './types';
-import { DataAttributeSetter, IMonoDataAttribute, IPolyDataAttribute, IPolyDataAttributeEvent } from './data';
+import { DataAttributeSetter, IAttributes, IMonoDataAttribute, IPolyDataAttribute, IPolyDataAttributeEvent } from './data';
 import UnknownAttribute from './data/attribute/unknown';
 import { DataAttributeChangeEvent } from './data/events';
 
@@ -103,7 +106,7 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			this.#module = module || {};
 			this.#owner = owner;
 
-			this.#propsManager = new PropertyManager(this, description, config.props || {});
+			this.#propsManager = new PropertyManager(this, module, description, config.props || {});
 
 			for(let [propName, prop] of Object.entries(this.#propsManager)) {
 				Object.defineProperty(this, propName, { 
@@ -182,20 +185,13 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			}
 		}
 
-		public on(event: string, callback: EventListener | string): void {
+		public on(event: string, handler: MethodHandlerDefinition): void {
 			const listener = (e: Event) => {
-				if(typeof callback === 'string') {
-					const handler = this.#module[callback as keyof Base] as EventHandler;
-					if(handler) {
-						handler.call(this.#owner, e);
-					} else {
-						throw new Error(`Element doesn't have a function ${callback}`);
-					}
-				} else if(typeof callback === 'function') {
-					callback.call(this, e);
-				} else {
-					throw new Error(`Wrong object was defined as event handler. Only 'string' or 'function' are allowed. Type '${typeof callback}' was provided.`);
-				}
+				executeMethod(
+					handler,
+					this.#owner,
+					[e]
+				);
 			};
 
 			this.addEventListener(event, listener);
@@ -226,12 +222,14 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
   
 			if(template.className) {
 				const prop = template.className;
-				const setter = (value: any) => this.setAttribute('class', value as string); 
+				const setter = (value: any) => {
+					this.setAttribute('class', value as string);
+				}; 
 				setObservation(this as IComponent, prop, this.#context, setter);
 			}
 
 			Object.entries(template.attributes || {}).map(([name, prop]) => {
-				setObservation(this, prop!, this.#context, (value: any) => {
+				const setter = (value: boolean | string) => {
 					if(value === true) {
 						this.setAttribute(name, ''); 
 					} else if(value === false) {
@@ -239,7 +237,8 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 					} else {
 						this.setAttribute(name, value as string); 
 					}
-				});
+				}; 
+				setObservation(this, prop, this.#context, setter);
 			});
   
 			Object.entries(template.props || {}).map(([name, prop]) => {
@@ -272,39 +271,79 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 				});
 			}
   
-			Object.entries(template.events || {}).map(([event, callback]) => {
-				this.on(event, callback);
+			Object.entries(template.events || {}).map(([event, handler]) => {
+				this.on(event, handler);
 			});
   
 			if(template.children) {
+				const children = [];
 				if(typeof template.children === 'string') {
-					this.innerHTML = template.children;
+					const child = document.createTextNode(template.children);
+					children.push(child);
+				} else if(typeof template.children === 'object' && (template.children as PropHandlerDefinition).handler) {
+					const buildConfig = executeMethod(
+						(template.children as PropHandlerDefinition).handler,
+						this.#owner,
+						[this]
+					);
+
+					if(buildConfig) {
+						const child = buildElement({ parent: this, config: buildConfig, context: this.#context, module: this.#module });
+						children.push(child);
+
+						if((buildConfig as MonoChildTemplate).alias) {
+							this.#elements[(buildConfig as MonoChildTemplate).alias!] = child as IComponent;
+						}
+					}
 				} else {
 					for(const childConfig of template.children) {
 						if(typeof childConfig === 'string') {
-							this.innerHTML = childConfig;
+							const child = document.createTextNode(childConfig);
+							children.push(child);
 							continue;
 						}
-						if(!childConfig || !Object.entries(childConfig).length || childConfig?.type === 'slot') continue;
-						const child = buildElement({ parent: this, config: childConfig, context: this.#context, module: this.#module });
-						this.appendChild(child);
-						if(childConfig.alias) {
-							this.#elements[childConfig.alias] = child as IComponent;
+
+						if(!childConfig || !Object.entries(childConfig).length || (childConfig as MonoChildTemplate)?.type === 'slot') continue;
+
+						if(typeof childConfig === 'object' && (childConfig as PropHandlerDefinition).handler) {
+							const buildConfig = executeMethod(
+								(childConfig as PropHandlerDefinition).handler,
+								this.#owner,
+								[this]
+							);
+
+							if(buildConfig) {
+								const child = buildElement({ parent: this, config: buildConfig, context: this.#context, module: this.#module });
+								children.push(child);
+
+								if((buildConfig as MonoChildTemplate).alias) {
+									this.#elements[(buildConfig as MonoChildTemplate).alias!] = child as IComponent;
+								}
+							}
+						} else {
+							const child = buildElement({ parent: this, config: childConfig, context: this.#context, module: this.#module });
+							children.push(child);
+
+							if((childConfig as MonoChildTemplate).alias) {
+								this.#elements[(childConfig as MonoChildTemplate).alias!] = child as IComponent;
+							}
 						}
 					}
 				}
+
+				this.append(...children);
 			}
 		}
 
-		public addElement(config: ChildTemplate, { context, position }: ElementOptions): DOMElement {
+		public addElement(config: ChildTemplate, { context, position }: ElementOptions = {}): DOMElement {
 			const element = buildElement({ parent: this, config, module: this.#module, context });
 			if(typeof position === 'number') {
 				this.insertBefore(element, this.children[position]);
 			} else {
 				this.appendChild(element);
 			}
-			if(config!.alias) {
-				this.#elements[config!.alias] = element as IComponent;
+			if((config  as MonoChildTemplate)!.alias) {
+				this.#elements[(config  as MonoChildTemplate)!.alias!] = element as IComponent;
 			}
 
 			return element;
@@ -318,8 +357,8 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			for(const elementConfig of configs) {
 				const element = buildElement({ parent: this, config: elementConfig, module: this.#module });
 				this.appendChild(element);
-				if(elementConfig!.alias) {
-					this.#elements[elementConfig!.alias] = element as IComponent;
+				if((elementConfig as MonoChildTemplate)!.alias) {
+					this.#elements[(elementConfig  as MonoChildTemplate)!.alias!] = element as IComponent;
 				}
 			}
 		}
@@ -370,9 +409,17 @@ export function componentFabric<T extends ComponentDefinition<any, any>, D exten
 			return this.#elements;
 		} 
   
-		public get context(): IState {
-			return this.#context.getData();
+		public get context(): IAttributes {
+			if(this.#context instanceof StateManager) {
+				return this.#context.getData();
+			} else {
+				return this.#context;
+			}
 		} 
+
+		public get $context(): IStateManager {
+			return this.#context;
+		}
 
 		public get owner() {
 			return this.#owner;

@@ -1,5 +1,5 @@
 import { ElementEvents } from "../types/dom";
-import { DataAttribute, DataAttributeValue, IPolyDataAttribute, IPolyDataAttributeEvent, IState, IStateManager, StateDefinition, StateManagerAttributes, StateValues } from "./data";
+import { DataAttribute, DataAttributeValue, IAttributes, IPolyDataAttribute, IPolyDataAttributeEvent, IState, IStateManager, StateDefinition, StateManagerAttributes, StateValues } from "./data";
 import InstanceAttribute from "./data/attribute/instance";
 import Reference from "./objects/reference";
 
@@ -49,9 +49,9 @@ export interface ComponentSpecification {
  */
 export type ElementType = 'element' | 'slot' | 'native';
 
-export type PropHandler = () => any;
+export type PropHandler = (...args: any[]) => any;
 export type PropHandlerDefinition = {
-  handler?: PropHandler;
+  handler?: PropHandler | string;
   dependencies?: Array<DataAttribute | string>;
 };
 
@@ -64,7 +64,9 @@ export type PropDataSourceDefinition = {
 export type PropDefinition = string | number | boolean | DataAttribute | PropHandlerDefinition | PropDataSourceDefinition;
 export type PropDefinitions = Record<string, PropDefinition>;
 
-export type EventHandler<E extends Event = Event> = (event: E, ...args: any) => void;
+export type MethodHandler = (...args: any[]) => void;
+export type EventHandler<E extends Event = Event> = (event: E, ...args: any[]) => void;
+export type MethodHandlerDefinition = string | MethodHandler;
 export type EventHandlerDefinition<E extends Event = Event> = string | EventHandler<E>;
 
 export type StyleProperties = keyof Omit<CSSStyleDeclaration, typeof Symbol.iterator | number | 'length' | 'parentRule'>;
@@ -78,7 +80,7 @@ export type MonoChildTemplate = Template & {
 export type PolyChildTemplate = MonoChildTemplate & {
   index: number;
 }
-export type ChildTemplate = MonoChildTemplate | PolyChildTemplate;
+export type ChildTemplate = MonoChildTemplate | PolyChildTemplate | PropHandlerDefinition;
 
 export type Template = {
   type?: ElementType;
@@ -120,7 +122,7 @@ export type Component<T extends ComponentSpecification> = ComponentProps<T> & {
 export type DOMElement = HTMLElement | SVGSVGElement | IComponent;
 
 export type ElementOptions = {
-	context?: IStateManager;
+	context?: IStateManager | DataAttribute;
   position?: number;
 }
 
@@ -131,13 +133,15 @@ export interface IComponent<D extends DataAttribute = DataAttribute> extends HTM
   $state: IStateManager;
   scope: IState;
   $scope: IStateManager;
+  $context: IStateManager;
   props: ComponentProps<any>;
-  context: IState;
+  context: IAttributes;
   data: D;
   alias: string | undefined;
   elements: Record<string, IComponent>;
   owner: IView;
   master: IComponent | null;
+  parent: IComponent;
   render(): Template;
   observe(observable: DataAttribute | IPolyDataAttribute, callback: EventListenerOrEventListenerObject): void;
   on(event: string, callback: EventListener | string): void;
@@ -194,7 +198,7 @@ export type ComponentDefinition<D extends ComponentSpecification, C extends Comp
 };
 
 export type ComponentPropsFromDefinition<T extends ComponentDefinition<any>> = {
-  [K in keyof T['props']]?: T['props'][K];
+  [K in keyof T['props']]?: T['props'][K] | PropHandlerDefinition;
 }
 
 /**

@@ -6,14 +6,16 @@ import {
 	PropDataSourceDefinition,
 	PropDefinitions,
 	PropHandlerDefinition,
+	ViewModule,
 } from '../types';
+import { executeMethod } from '@/core/fabric';
 
 import { DataAttribute } from './state';
 
 export default class PropertyManager<D extends ComponentSpecification> extends EventTarget implements ComponentProps<any> {
 	#values: Record<string, any>;
 
-	constructor(element: IComponent, description: D, inputProps: PropDefinitions) {
+	constructor(element: IComponent, module: ViewModule | undefined, description: D, inputProps: PropDefinitions) {
 		super();
 		this.#values = {};
 
@@ -21,10 +23,19 @@ export default class PropertyManager<D extends ComponentSpecification> extends E
 			let definedProp = inputProps[propName as keyof PropDefinitions];
 			let defaultValue = definedProp || prop?.defaultValue;
 			if(definedProp) {
-				if((definedProp as DataAttribute).DataAttribute) {
-					defaultValue = (definedProp as IMonoDataAttribute).value;
-				} else if(typeof definedProp === 'object' && (definedProp as PropHandlerDefinition).handler) {
-					defaultValue = (definedProp as PropHandlerDefinition).handler!.apply(element, []);
+				if(definedProp) {
+					if((definedProp as DataAttribute).DataAttribute) {
+						defaultValue = (definedProp as IMonoDataAttribute).value;
+					} else if(typeof definedProp === 'object' && (definedProp as PropHandlerDefinition).handler) {
+						defaultValue = executeMethod(
+							(definedProp as PropHandlerDefinition),
+							element.owner,
+							[element]);
+					} else if(typeof definedProp === 'object' && (definedProp as PropDataSourceDefinition).path) {
+						let dataProvider = element.context;
+						const attr = dataProvider[(definedProp as PropDataSourceDefinition).path] as IMonoDataAttribute;
+						defaultValue = attr.value;
+					}
 				} else if(typeof definedProp === 'object' && (definedProp as PropDataSourceDefinition).path) {
 					let dataProvider = element.context;
 					const attr = dataProvider[(definedProp as PropDataSourceDefinition).path] as IMonoDataAttribute;

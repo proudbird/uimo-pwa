@@ -56,14 +56,17 @@ export type DataAttributeMap<T> =
 type WithDynamicProperties = {
   [key: string]: IDataAttribute | any;
 }
+
+export interface IAttributes {
+  [key: string]: DataAttributeValue | any;
+}
   
 export interface IStateManager extends WithDynamicProperties {
   getData(): IState;
   merge(source: IStateManager | IStateManager[]): IStateManager;
 }
 
-export interface IState {
-  [key: string]: DataAttributeValue | any;
+export interface IState extends IAttributes {
   addAttribute(attributeName: string, attribute: DataAttribute): void;
 }
 
@@ -80,6 +83,7 @@ export type StateDefinition = Record<string, {
   link?: any,
   id?: string,
   selected?: string,
+  inScope?: boolean,
 }>;
 
 export type DataAttributeSetter = (value: any) => void;
